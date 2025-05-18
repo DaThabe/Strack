@@ -1,0 +1,178 @@
+﻿<Window
+    x:Class="Strack.Desktop.UI.Shell.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:itemVm="clr-namespace:Strack.Desktop.ViewModel.Shell.Navigation.Item"
+    xmlns:local="clr-namespace:Strack.Desktop.UI.Shell"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:shell="clr-namespace:Strack.Desktop.ViewModel.Shell"
+    xmlns:ui="clr-namespace:Strack.Desktop.UI"
+    xmlns:view="clr-namespace:Strack.Desktop.UI.View"
+    x:Name="Root"
+    Title="{Binding Title}"
+    Width="800"
+    Height="450"
+    d:DataContext="{d:DesignInstance Type=shell:MainWindowViewModel}"
+    
+    ResizeMode="CanResize"
+    WindowStyle="SingleBorderWindow"
+    mc:Ignorable="d">
+
+    <Window.Resources>
+
+        <ui:BindingProxy x:Key="BindingProxy" Data="{Binding NavigateCommand}" />
+
+
+        <!--  导航元素样式  -->
+        <Style x:Key="NavigationItemStyle" TargetType="RadioButton">
+
+            <Setter Property="IsChecked" Value="False" />
+            <Setter Property="Margin" Value="5" />
+            <Setter Property="Width" Value="40" />
+            <Setter Property="Height" Value="40" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="GroupName" Value="NavigationItem" />
+
+            <Setter Property="Template">
+                <Setter.Value>
+
+                    <ControlTemplate TargetType="RadioButton">
+
+                        <Border
+                            x:Name="Border"
+                            Width="40"
+                            Height="40"
+                            Padding="3"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="5">
+
+                            <Viewbox Margin="8">
+                                <Path
+                                    x:Name="Content"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Data="{TemplateBinding Content}"
+                                    Fill="{TemplateBinding Foreground}" />
+                            </Viewbox>
+
+
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+
+                            <!--  鼠标进入  -->
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource MainWindow.Navigation.Item.Hover.Background}" />
+                                <Setter TargetName="Content" Property="Fill" Value="{DynamicResource MainWindow.Navigation.Item.Hover.Foreground}" />
+                            </Trigger>
+
+                            <!--  选中状态  -->
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource MainWindow.Navigation.Item.Selected.Background}" />
+                                <Setter TargetName="Content" Property="Fill" Value="{DynamicResource MainWindow.Navigation.Item.Selected.Foreground}" />
+                            </Trigger>
+
+                            <!--  默认状态  -->
+                            <Trigger Property="IsChecked" Value="False">
+                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource MainWindow.Navigation.Item.Normal.Background}" />
+                                <Setter TargetName="Content" Property="Fill" Value="{DynamicResource MainWindow.Navigation.Item.Normal.Foreground}" />
+                            </Trigger>
+
+                        </ControlTemplate.Triggers>
+
+                    </ControlTemplate>
+
+                </Setter.Value>
+            </Setter>
+
+        </Style>
+
+
+    </Window.Resources>
+
+    <Border Background="{DynamicResource MainWindow.Navigation.Background}" CornerRadius="20">
+        <Grid>
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition Width="80" />
+            </Grid.ColumnDefinitions>
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="60" />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+
+            <!--  标题栏  -->
+            <DockPanel
+                Grid.Row="0"
+                Grid.Column="0"
+                Margin="10,0">
+
+                <TextBlock
+                    VerticalAlignment="Center"
+                    FontSize="20"
+                    FontWeight="Bold"
+                    Text="Strack" />
+
+            </DockPanel>
+
+            <!--  导航栏  -->
+            <DockPanel Grid.Row="1" Grid.Column="1">
+
+                <!--  底部  -->
+                <RadioButton
+                    Command="{Binding CloseCommand}"
+                    Content="{DynamicResource MainWindow.Navigation.Icon.Close}"
+                    DockPanel.Dock="Bottom"
+                    Style="{StaticResource NavigationItemStyle}" />
+
+                <!--  中间  -->
+                <StackPanel VerticalAlignment="Center">
+
+                    <RadioButton
+                        Command="{Binding NavigateCommand}"
+                        CommandParameter="{x:Type view:TestView}"
+                        Content="{DynamicResource MainWindow.Navigation.Icon.Dashboard}"
+                        IsChecked="True"
+                        Style="{StaticResource NavigationItemStyle}"
+                        ToolTip="主页" />
+
+                    <RadioButton
+                        Command="{Binding NavigateCommand}"
+                        CommandParameter="{x:Type view:TestView}"
+                        Content="{DynamicResource MainWindow.Navigation.Icon.Track}"
+                        Style="{StaticResource NavigationItemStyle}"
+                        ToolTip="轨迹" />
+
+                    <RadioButton
+                        Command="{Binding NavigateCommand}"
+                        CommandParameter="{x:Type view:TestView}"
+                        Content="{DynamicResource MainWindow.Navigation.Icon.Detail}"
+                        Style="{StaticResource NavigationItemStyle}"
+                        ToolTip="明细" />
+
+                    <RadioButton
+                        Command="{Binding NavigateCommand}"
+                        CommandParameter="{x:Type view:TestView}"
+                        Content="{DynamicResource MainWindow.Navigation.Icon.Setting}"
+                        Style="{StaticResource NavigationItemStyle}"
+                        ToolTip="设置" />
+
+                </StackPanel>
+
+            </DockPanel>
+
+            <Border
+                Grid.Row="1"
+                Grid.Column="0"
+                Margin="5"
+                Background="{DynamicResource MainWindow.Background}"
+                CornerRadius=" 20 0 0 0" />
+
+        </Grid>
+    </Border>
+
+</Window>
