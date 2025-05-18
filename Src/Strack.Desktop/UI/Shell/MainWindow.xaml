@@ -8,6 +8,7 @@
     xmlns:local="clr-namespace:Strack.Desktop.UI.Shell"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:shell="clr-namespace:Strack.Desktop.ViewModel.Shell"
+    xmlns:track="clr-namespace:Strack.Desktop.UI.View.Track"
     xmlns:ui="clr-namespace:Strack.Desktop.UI"
     xmlns:view="clr-namespace:Strack.Desktop.UI.View"
     x:Name="Root"
@@ -15,14 +16,11 @@
     Width="800"
     Height="450"
     d:DataContext="{d:DesignInstance Type=shell:MainWindowViewModel}"
-    
-    ResizeMode="CanResize"
-    WindowStyle="SingleBorderWindow"
     mc:Ignorable="d">
 
     <Window.Resources>
 
-        <ui:BindingProxy x:Key="BindingProxy" Data="{Binding NavigateCommand}" />
+        <ui:BindingProxy x:Key="BindingProxy" Data="{Binding}" />
 
 
         <!--  导航元素样式  -->
@@ -92,87 +90,76 @@
 
     </Window.Resources>
 
-    <Border Background="{DynamicResource MainWindow.Navigation.Background}" CornerRadius="20">
-        <Grid>
+    <DockPanel Background="{DynamicResource MainWindow.Navigation.Background}">
 
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition />
-                <ColumnDefinition Width="80" />
-            </Grid.ColumnDefinitions>
+        <!--  导航栏  -->
+        <DockPanel DockPanel.Dock="Left">
 
-            <Grid.RowDefinitions>
-                <RowDefinition Height="60" />
-                <RowDefinition />
-            </Grid.RowDefinitions>
+            <!--  页脚菜单  -->
+            <ItemsControl
+                d:ItemsSource="{d:SampleData ItemCount=3}"
+                DockPanel.Dock="Bottom"
+                ItemsSource="{Binding FooterMenus}">
 
-            <!--  标题栏  -->
-            <DockPanel
-                Grid.Row="0"
-                Grid.Column="0"
-                Margin="10,0">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type itemVm:NavigationItemViewModel}">
 
-                <TextBlock
-                    VerticalAlignment="Center"
-                    FontSize="20"
-                    FontWeight="Bold"
-                    Text="Strack" />
+                        <RadioButton
+                            Command="{Binding Data.NavigateCommand, Source={StaticResource BindingProxy}}"
+                            CommandParameter="{Binding TargetPageType}"
+                            Content="{Binding Icon}"
+                            IsChecked="{Binding IsSelected}"
+                            Style="{StaticResource NavigationItemStyle}"
+                            ToolTip="{Binding Title}" />
 
-            </DockPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
 
-            <!--  导航栏  -->
-            <DockPanel Grid.Row="1" Grid.Column="1">
+            </ItemsControl>
 
-                <!--  底部  -->
-                <RadioButton
-                    Command="{Binding CloseCommand}"
-                    Content="{DynamicResource MainWindow.Navigation.Icon.Close}"
-                    DockPanel.Dock="Bottom"
-                    Style="{StaticResource NavigationItemStyle}" />
+            <!--  菜单  -->
+            <ItemsControl
+                VerticalAlignment="Center"
+                d:ItemsSource="{d:SampleData ItemCount=3}"
+                ItemsSource="{Binding Menus}">
 
-                <!--  中间  -->
-                <StackPanel VerticalAlignment="Center">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
 
-                    <RadioButton
-                        Command="{Binding NavigateCommand}"
-                        CommandParameter="{x:Type view:TestView}"
-                        Content="{DynamicResource MainWindow.Navigation.Icon.Dashboard}"
-                        IsChecked="True"
-                        Style="{StaticResource NavigationItemStyle}"
-                        ToolTip="主页" />
+                        <RadioButton
+                            Command="{Binding Data.NavigateCommand, Source={StaticResource BindingProxy}}"
+                            CommandParameter="{Binding TargetPageType}"
+                            Content="{Binding Icon}"
+                            IsChecked="{Binding IsSelected}"
+                            Style="{StaticResource NavigationItemStyle}"
+                            ToolTip="轨迹" />
 
-                    <RadioButton
-                        Command="{Binding NavigateCommand}"
-                        CommandParameter="{x:Type view:TestView}"
-                        Content="{DynamicResource MainWindow.Navigation.Icon.Track}"
-                        Style="{StaticResource NavigationItemStyle}"
-                        ToolTip="轨迹" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
 
-                    <RadioButton
-                        Command="{Binding NavigateCommand}"
-                        CommandParameter="{x:Type view:TestView}"
-                        Content="{DynamicResource MainWindow.Navigation.Icon.Detail}"
-                        Style="{StaticResource NavigationItemStyle}"
-                        ToolTip="明细" />
+                <ItemsControl.Template>
+                    <ControlTemplate>
 
-                    <RadioButton
-                        Command="{Binding NavigateCommand}"
-                        CommandParameter="{x:Type view:TestView}"
-                        Content="{DynamicResource MainWindow.Navigation.Icon.Setting}"
-                        Style="{StaticResource NavigationItemStyle}"
-                        ToolTip="设置" />
+                        <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                            <ItemsPresenter />
+                        </ScrollViewer>
 
-                </StackPanel>
+                    </ControlTemplate>
+                </ItemsControl.Template>
 
-            </DockPanel>
+            </ItemsControl>
 
-            <Border
-                Grid.Row="1"
-                Grid.Column="0"
-                Margin="5"
-                Background="{DynamicResource MainWindow.Background}"
-                CornerRadius=" 20 0 0 0" />
+        </DockPanel>
 
-        </Grid>
-    </Border>
+        <!--  页面内容  -->
+        <Border
+            Grid.Row="1"
+            Grid.Column="0"
+            Margin="5"
+            Background="{DynamicResource MainWindow.Background}"
+            CornerRadius=" 20">
+            <ContentPresenter Content="{Binding ViewContent}" />
+        </Border>
 
+    </DockPanel>
 </Window>

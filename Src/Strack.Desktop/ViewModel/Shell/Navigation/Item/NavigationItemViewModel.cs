@@ -22,14 +22,14 @@ public partial class NavigationItemViewModel : ObservableObject
     public partial string Title { get; set; }
 
     /// <summary>
-    /// 是否选中元素
-    /// </summary>
-    [ObservableProperty]
-    public partial bool IsSelected { get; set; }
-
-    /// <summary>
     /// 目标页面类型
     /// </summary>
     [ObservableProperty]
     public partial Type TargetPageType { get; set; }
+
+    /// <summary>
+    /// 是否被选中
+    /// </summary>
+    [ObservableProperty]
+    public partial bool IsSelected { get; set; }
 }

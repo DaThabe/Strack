@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Strack.Desktop.Service;
 using Strack.Desktop.UI.Shell;
 using Strack.Desktop.UI.View;
+using Strack.Desktop.UI.View.Track;
 using Strack.Desktop.ViewModel.Shell;
 using Strack.Desktop.ViewModel.Shell.Navigation.Item;
 using Strack.Desktop.ViewModel.View;
@@ -29,6 +30,8 @@ public static class HostBuilder
                 services.AddTransient<NavigationItemViewModel>();
 
 
+                //轨迹视图
+                services.AddSingleton<TrackView>();
 
                 services.AddSingleton<TestView>();
                 services.AddTransient<TestViewModel>();

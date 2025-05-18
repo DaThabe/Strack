@@ -1,8 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
+using Strack.Desktop.ViewModel.Shell.Navigation.Item;
 using Strack.Desktop.ViewModel.Shell.Navigation.Page;
+using System.Collections.ObjectModel;
 using System.Windows;
+using System.Windows.Media;
 
 namespace Strack.Desktop.ViewModel.Shell;
 
@@ -17,7 +20,7 @@ public partial class MainWindowViewModel(
     /// 主窗口标题
     /// </summary>
     [ObservableProperty]
-    public partial string Title { get; set; }
+    public partial string Title { get; set; } = $"Strack-{typeof(MainWindowViewModel).Assembly.GetName().Version}";
 
     /// <summary>
     /// 当前内容
@@ -26,11 +29,18 @@ public partial class MainWindowViewModel(
     public partial FrameworkElement? ViewContent { get; set; }
 
 
-    [RelayCommand]
-    public void Close()
-    {
-        app.Shutdown();
-    }
+    /// <summary>
+    /// 菜单
+    /// </summary>
+    [ObservableProperty]
+    public partial ObservableCollection<NavigationItemViewModel> Menus { get; set; } = [];
+
+    /// <summary>
+    /// 页脚菜单
+    /// </summary>
+    [ObservableProperty]
+    public partial ObservableCollection<NavigationItemViewModel> FooterMenus { get; set; } = [];
+
 
     /// <summary>
     /// 导航到目标类型页面
@@ -40,6 +50,22 @@ public partial class MainWindowViewModel(
     [RelayCommand]
     public async Task NavigateAsync(Type targetPageType)
     {
+        var menuItem = Menus.FirstOrDefault(x => x.TargetPageType == targetPageType);
+        if (menuItem == null) menuItem = FooterMenus.FirstOrDefault(x => x.TargetPageType == targetPageType);
+
+        //菜单不存在
+        if (menuItem != null)
+        {
+            menuItem.IsSelected = true;
+        }
+
+        //无效页面类型
+        if (!typeof(FrameworkElement).IsAssignableFrom(targetPageType))
+        {
+            logger.LogWarning("导航失败, 不支持的页面类型:{type}", targetPageType);
+            return;
+        }
+
         //无效页面类型
         if (!typeof(FrameworkElement).IsAssignableFrom(targetPageType))
         {
@@ -62,7 +88,6 @@ public partial class MainWindowViewModel(
         {
             return;
         }
-
 
         //离开上一个页面
         if (_currentNavigationPageViewModel is not null)
@@ -95,4 +120,30 @@ public partial class MainWindowViewModel(
 
     //当前导航页面
     private INavigationPageViewModel? _currentNavigationPageViewModel;
+}
+
+
+
+public static class MainWindowViewModelExtension
+{
+    extension(ICollection<NavigationItemViewModel> vms)
+    {
+        /// <summary>
+        /// 添加一个菜单
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="icon"></param>
+        /// <param name="title"></param>
+        public void Add<T>(Geometry icon, string title) where T : FrameworkElement
+        {
+            NavigationItemViewModel viewModel = new()
+            {
+                Icon = icon,
+                Title = title,
+                TargetPageType = typeof(T)
+            };
+
+            vms.Add(viewModel);
+        }
+    }
 }
