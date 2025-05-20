@@ -8,7 +8,7 @@ namespace Strack.External.Xingzhe.Model;
 public class ActivitySummary
 {
     /// <summary>
-    /// 训练Id
+    /// Id
     /// </summary>
     public required long Id { get; set; }
 
@@ -23,9 +23,9 @@ public class ActivitySummary
     public required string Title { get; set; }
 
     /// <summary>
-    /// 训练类型
+    /// 类型
     /// </summary>
-    public required XingzheActivityType Sport { get; set; }
+    public required XingzheActivityType Type { get; set; }
 
 
 
@@ -47,6 +47,6 @@ public class ActivitySummary
 
     public override string ToString()
     {
-        return $"[{Timestamp:yyyy-MM-dd HH:MM}] 类型:{Sport}, Id: {Id}, 标题:{Title}, 均速:{AvgSpeed}, 用时:{Duration}, 距离:{Distance}";
+        return $"[{Timestamp:yyyy-MM-dd HH:MM}] 类型:{Type}, Id: {Id}, 标题:{Title}, 均速:{AvgSpeed}, 用时:{Duration}, 距离:{Distance}";
     }
 }

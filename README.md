@@ -1,91 +1,67 @@
-# 行者运动数据导出工具
 
-[![License: Apache License 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
-[![Version](https://img.shields.io/badge/Version-0.0.1alpha-blue.svg)](https://github.com/yourusername/yourrepo/releases)
+![banner](Res/Design/LOGO.png)
 
+# Strack
 
-![](Resources/Image/icon.png)
+[![version](https://img.shields.io/badge/Version-0.0.1alpha-blue.svg)](https://github.com/DaThabe/Strack/releases)
+[![MIT License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/DaThabe/Strack/blob/master/LICENSE.txt)
 
+Strack 是一款基于 WPF 开发的桌面应用程序，专注于运动轨迹的展示与可视化分析。无论是日常跑步、骑行、徒步等轨迹数据，都能提供直观、清晰的地图可视化和多维度的数据统计支持。
 
-## 问答
+项目灵感来源于优秀的开源项目 [running_page](https://github.com/yihong0618/running_page)，Strack 支持轨迹导入、地图展示、轨迹详情查看及后续拓展能力。
 
-### 什么是行者?  
+项目名称 Strack 源于 Super Track 的组合灵感，寓意对轨迹的全面掌控与深度探索。
 
-- [官网](https://www.imxingzhe.com/)是这样写的「行者，专业户外运动软件」
+## ✅ 主要功能
 
-### 为什么写这个工具?  
+- 📥 导入轨迹数据：支持通过 API 或标准格式（如 GPX）导入运动轨迹
+- 🗺️ 地图可视化：基于 Mapsui 实现地图展示，可显示全部轨迹或单次活动路线
+- 📊 运动数据分析：自动统计运动总里程、时长、配速等核心指标
+- 🧭 轨迹详情页：每条轨迹支持单独查看详细时间、路线、类型等信息
+- 🌙 多主题支持（开发中）
 
-- 在浏览行者网页端时，我发现可以导出 GPX 文件，其中包含了我的运动记录。我想将这些记录上传到 [Strava](https://www.strava.com/) ,于是这个工具出现了
+## 🚀快速开始
 
+- **使用发行版**：可前往 [Releases](https://github.com/DaThabe/Strack/releases) 页面下载最新版。
+- **自行构建**： 安装 .NET 10 Runtime 后，使用 Visual Studio 2022 或更高版本打开 Strack.sln 进行调试或开发。
 
-### 是怎么导出的?
+## 📷 界面截图
 
-- 模拟网页版行者进行API请求
+[!img1](/)
 
-- 需要登录之后获取自己的 Cookie 才能使用
+## 🧰 技术栈
 
-![GPX 节点](Resources/Image/gpx_list.png)
+| 项目 | 用途 | 协议 |
+| :-- | :-- | :-- |
+| [dotnet/runtime](https://github.com/dotnet/runtime) | .NET 9 核心运行时 | MIT |
+| [dotnet/wpf](https://github.com/dotnet/wpf) | 桌面 UI 框架 | MIT |
+| [dotnet/efcore](https://github.com/dotnet/efcore) | ORM 数据访问层 | MIT |
+| [Microsoft.Extensions.Hosting](https://github.com/dotnet/runtime) | 宿主与生命周期管理 | MIT |
+| [Microsoft.Xaml.Behaviors.Wpf](https://github.com/Microsoft/XamlBehaviorsWpf) | 行为与触发器支持 | MIT |
+| [CommunityToolkit.Mvvm](https://github.com/CommunityToolkit/dotnet) | MVVM 框架 | MIT |
+| [Newtonsoft.Json](https://github.com/JamesNK/Newtonsoft.Json) | JSON 序列化与反序列化 | MIT |
+| [UnitsNet](https://github.com/angularsen/UnitsNet) | 单位换算与物理量支持 | MIT |
+| [Mapsui.Wpf](https://github.com/Mapsui/Mapsui) | 地图显示与投影支持 | LGPL-2.1 |
+| [CalcBinding](https://github.com/Keboo/CalcBinding) | 表达式绑定增强 | MIT |
 
+## 📌 开发计划
 
-### 都能导出什么?  
+- [1] GPX 文件导入支持
+- [ ] Dark / Light 主题切换
+- [ ] 多用户数据管理
 
-- **经纬度**: 你的运动轨迹
+## 🗂️ 项目信息
 
-- **海拔(m)**: 你的海拔高度
+![Alt](https://repobeats.axiom.co/api/embed/d64be33fe7e3cde9376f47827202e35846a5de21.svg "Repobeats analytics image")
 
-- **速度(m/s)**: 你的运动速度
+## 🏆 贡献者
 
-- **心率(bpm)**: 如果你有心率传感器
+[![Toolkit Contributors](https://contrib.rocks/image?repo=Dathabe/Strack)](https://github.com/DaThabe/Strack/graphs/contributors)
 
-- **踏频(rpm)**: 如果你有踏频传感器
+## 📊 图表与徽章工具
 
-- **功率(w)**: 如果你有功率计
-
-### 导出的数据是什么格式?  
-
-- **[GPX 1.1](https://www.topografix.com/GPX/1/1/)** 格式的 XML 文档。这个格式是通用的运动数据交换格式
-
-![GPX 节点](Resources/Image/gpx_xml.png)
-
-- 我还在疑惑 心率,功率,踏频 怎么合并到一起上传 Strava 时
-
-- 查询到了这个项目 **[xingzhe-gpx-processor](https://github.com/Harry-Chen/xingzhe-gpx-processor/blob/master/merge.py)**
-
-- 得知了以下写法, 非常感谢
-
-![GPX 节点](Resources/Image/point.png)
-
-
-## 安装和配置
-
-- 克隆或下载本仓库
-
-- 编译并运行应用程序
-
-- 按照程序提示进行操作
-
-## 使用方法
-
-![](Resources/Image/session_id.png)
-
-> 使用前请先设置SessionId, 打开浏览器>进入行者网站>开启开发者模式>网络>随便点击页面>查看网络请求>Cookie>SessionId
-
-### 目前有3条指令
-
-![GPX 节点](Resources/Image/command.png)
-
-**同步训练数据**
-> xzexp sync
-
-**获取单个训练数据**
->xzexp get <workoutId> <savePath> [--userId=123] [--format=<gpx|tcx>]
-
-**打开导出目录**
->xzexp open
-
-
-## 篇末
-
-- 如果你有任何问题或建议，请随时联系我
-
-- 辣鸡代码, 大伙看个乐
+| 名称 | 作用 |
+| :-- | :-- |
+| [shields.io](https://shields.io/) | 用于生成开源协议、版本等项目徽章 |
+| [repobeats.axiom.co](https://repobeats.axiom.co) | 展示项目提交活动与热度趋势图 |
+| [contrib.rocks](https://contrib.rocks) | 可视化展示 GitHub 贡献者头像墙 |

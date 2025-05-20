@@ -92,13 +92,21 @@ internal static class GeometryExtension
         return result;
     }
 
+    /// <summary>
+    /// 将坐标浮点数裁剪到指定小数点后位数
+    /// </summary>
+    public static List<Point> RoundCoordinates(this IEnumerable<Point> points, int digits)
+    {
+        return [.. points.Select(p => new Point(Math.Round(p.X, digits),Math.Round(p.Y, digits)))];
+    }
+
 
     /// <summary>
     /// 将点序列转换为可用于 Path 的几何数据。
     /// </summary>
     /// <param name="points">点的枚举器</param>
     /// <returns>路径几何</returns>
-    public static Geometry ToPathGeometry(this IEnumerable<Point> points)
+    public static Geometry ToGeometry(this IEnumerable<Point> points)
     {
         var geometry = new StreamGeometry();
         using StreamGeometryContext context = geometry.Open();

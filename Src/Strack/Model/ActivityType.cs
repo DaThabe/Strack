@@ -46,3 +46,21 @@ public enum ActivityType
     /// </summary>
     Ski = 401,
 }
+
+public static class ActivityTypeExtension
+{
+    public static string ToName(this ActivityType type)
+    {
+        return type switch
+        {
+            ActivityType.Walk => "散步",
+            ActivityType.Hike => "徒步",
+            ActivityType.Run => "跑步",
+            ActivityType.TrailRun => "越野跑",
+            ActivityType.Ride => "骑行",
+            ActivityType.Swim => "游泳",
+            ActivityType.Ski => "滑雪",
+            _ => "其他"
+        };
+    }
+}

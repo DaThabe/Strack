@@ -1,4 +1,6 @@
-﻿namespace Strack.External.Xingzhe.Model;
+﻿using Strack.Model;
+
+namespace Strack.External.Xingzhe.Model;
 
 
 /// <summary>
@@ -50,4 +52,22 @@ public enum XingzheActivityType
     /// 虚拟骑行
     /// </summary>
     VirtualRide = 12,
+}
+
+public static class XingzheActivityTypeExtension
+{
+    public static ActivityType ToActivityType(this XingzheActivityType type)
+    {
+        return type switch
+        {
+            XingzheActivityType.Hike => ActivityType.Hike,
+            XingzheActivityType.Run => ActivityType.Run,
+            XingzheActivityType.Ride => ActivityType.Ride,
+            XingzheActivityType.IndoorCycling => ActivityType.Ride,
+            XingzheActivityType.VirtualRide => ActivityType.Ride,
+            XingzheActivityType.Swim => ActivityType.Swim,
+            XingzheActivityType.Ski => ActivityType.Ski,
+            _ => ActivityType.Other
+        };
+    }
 }

@@ -117,7 +117,7 @@ internal class XingzheApi(
             {
                 Id = id,
                 Title = title,
-                Sport = sportType,
+                Type = sportType,
                 Timestamp = beginTime.ToBeijingTime(),
                 Distance = Length.FromMeters(distance),
                 Duration = TimeSpan.FromSeconds(duration),

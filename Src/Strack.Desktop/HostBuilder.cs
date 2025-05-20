@@ -4,10 +4,13 @@ using Microsoft.Extensions.Logging;
 using Strack.Desktop.Service;
 using Strack.Desktop.UI.Shell;
 using Strack.Desktop.UI.View;
+using Strack.Desktop.UI.View.Dashboard;
+using Strack.Desktop.UI.View.Import;
 using Strack.Desktop.UI.View.Track;
 using Strack.Desktop.ViewModel.Shell;
 using Strack.Desktop.ViewModel.Shell.Navigation.Item;
 using Strack.Desktop.ViewModel.View;
+using Strack.Desktop.ViewModel.View.Dashboard;
 
 namespace Strack.Desktop;
 
@@ -31,7 +34,11 @@ public static class HostBuilder
 
 
                 //轨迹视图
+                services.AddSingleton<DashboardView>();
+                services.AddTransient<DashboardViewModel>();
+
                 services.AddSingleton<TrackView>();
+                services.AddSingleton<ImportView>();
 
                 services.AddSingleton<TestView>();
                 services.AddTransient<TestViewModel>();

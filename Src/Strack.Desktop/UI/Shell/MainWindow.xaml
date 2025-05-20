@@ -87,6 +87,18 @@
 
         </Style>
 
+        <!--  导航元素模板  -->
+        <DataTemplate x:Key="NavigationItemTemplate" DataType="{x:Type itemVm:NavigationItemViewModel}">
+
+            <RadioButton
+                Command="{Binding Data.NavigateCommand, Source={StaticResource BindingProxy}}"
+                CommandParameter="{Binding TargetPageType}"
+                Content="{Binding Icon}"
+                IsChecked="{Binding IsSelected}"
+                Style="{StaticResource NavigationItemStyle}"
+                ToolTip="{Binding Title}" />
+
+        </DataTemplate>
 
     </Window.Resources>
 
@@ -99,43 +111,15 @@
             <ItemsControl
                 d:ItemsSource="{d:SampleData ItemCount=3}"
                 DockPanel.Dock="Bottom"
-                ItemsSource="{Binding FooterMenus}">
-
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate DataType="{x:Type itemVm:NavigationItemViewModel}">
-
-                        <RadioButton
-                            Command="{Binding Data.NavigateCommand, Source={StaticResource BindingProxy}}"
-                            CommandParameter="{Binding TargetPageType}"
-                            Content="{Binding Icon}"
-                            IsChecked="{Binding IsSelected}"
-                            Style="{StaticResource NavigationItemStyle}"
-                            ToolTip="{Binding Title}" />
-
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-
-            </ItemsControl>
+                ItemTemplate="{StaticResource NavigationItemTemplate}"
+                ItemsSource="{Binding FooterMenus}" />
 
             <!--  菜单  -->
             <ItemsControl
                 VerticalAlignment="Center"
                 d:ItemsSource="{d:SampleData ItemCount=3}"
+                ItemTemplate="{StaticResource NavigationItemTemplate}"
                 ItemsSource="{Binding Menus}">
-
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-
-                        <RadioButton
-                            Command="{Binding Data.NavigateCommand, Source={StaticResource BindingProxy}}"
-                            CommandParameter="{Binding TargetPageType}"
-                            Content="{Binding Icon}"
-                            IsChecked="{Binding IsSelected}"
-                            Style="{StaticResource NavigationItemStyle}"
-                            ToolTip="轨迹" />
-
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
 
                 <ItemsControl.Template>
                     <ControlTemplate>
@@ -155,10 +139,9 @@
         <Border
             Grid.Row="1"
             Grid.Column="0"
-            Margin="5"
             Background="{DynamicResource MainWindow.Background}"
-            CornerRadius=" 20">
-            <ContentPresenter Content="{Binding ViewContent}" />
+            CornerRadius="10">
+            <ContentPresenter Margin="5" Content="{Binding ViewContent}" />
         </Border>
 
     </DockPanel>
