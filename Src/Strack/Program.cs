@@ -1,4 +1,39 @@
-﻿// See https://aka.ms/new-console-template for more information
-using Microsoft.Extensions.DependencyInjection;
+﻿using Common;
+using Common.Model.File.Gpx;
+using Common.Service.File;
+using IGPSport;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Strack;
+using XingZhe;
 
-Console.WriteLine("Hello, World!");
+internal class Program
+{
+    private static async Task Main(string[] args)
+    {
+        Console.Title = "Strack.Console";
+
+        var app = Host.CreateDefaultBuilder(args)
+            .UseCommon()
+            .UseXingZhe()
+            .UseIGPSport()
+            .UseStrack()
+            .Build();
+
+        await app.StartAsync();
+
+
+
+        var gpxSyncService = app.Services.GetGpxSyncService();
+
+        //var xingZheTask = gpxSyncService.FromXingZheAsync();
+        //var igpsportTask = gpxSyncService.FromIGPSportAsync();
+
+        //await Task.WhenAll(xingZheTask, igpsportTask);
+
+        await gpxSyncService.CombineAsync();
+
+
+        await app.StopAsync();
+    }
+}

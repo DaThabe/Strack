@@ -1,8 +1,10 @@
-﻿namespace Strack.Model;
+﻿using XingZhe.Model.Workout;
+
+namespace Strack.Model;
 
 
 /// <summary>
-/// 训练类型
+/// 内部活动类型
 /// </summary>
 public enum ActivityType
 {
@@ -49,7 +51,7 @@ public enum ActivityType
 
 public static class ActivityTypeExtension
 {
-    public static string ToName(this ActivityType type)
+    public static string ToChineseName(this ActivityType type)
     {
         return type switch
         {
@@ -61,6 +63,30 @@ public static class ActivityTypeExtension
             ActivityType.Swim => "游泳",
             ActivityType.Ski => "滑雪",
             _ => "其他"
+        };
+    }
+    public static ActivityType ToActivityType(this IGPSport.Model.Activity.ActivityType type)
+    {
+        return type switch
+        {
+            IGPSport.Model.Activity.ActivityType.Ride => ActivityType.Ride,
+            IGPSport.Model.Activity.ActivityType.Run => ActivityType.Run,
+            _ => ActivityType.Other
+        };
+    }
+
+    public static ActivityType ToActivityType(this WorkoutType type)
+    {
+        return type switch
+        {
+            WorkoutType.Hike => ActivityType.Hike,
+            WorkoutType.Run => ActivityType.Run,
+            WorkoutType.Ride => ActivityType.Ride,
+            WorkoutType.IndoorCycling => ActivityType.Ride,
+            WorkoutType.VirtualRide => ActivityType.Ride,
+            WorkoutType.Swim => ActivityType.Swim,
+            WorkoutType.Ski => ActivityType.Ski,
+            _ => ActivityType.Other
         };
     }
 }

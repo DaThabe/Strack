@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Common.Model.Hosted;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Strack.Model.Database;
 
@@ -12,7 +13,11 @@ internal class MigrateHostedService(
     {
         try
         {
+            logger.LogTrace("正在迁移数据库");
+
             await dbContext.Database.MigrateAsync(cancellationToken);
+
+            logger.LogInformation("数据库迁移完成");
         }
         catch (Exception ex)
         {
