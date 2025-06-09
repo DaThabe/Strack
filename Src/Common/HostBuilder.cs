@@ -14,22 +14,21 @@ public static class HostBuilder
     /// <returns></returns>
     public static IHostBuilder UseCommon(this IHostBuilder builder)
     {
-        builder
-            .ConfigureServices((context, services) =>
-            {
-                //配置
-                services.AddSingleton<ISettingProvider, SettingService>();
-                services.AddHostedService(x => x.GetRequiredService<ISettingProvider>());
-                services.AddSingleton(typeof(ISetter<>), typeof(Setter<>));
+        builder.ConfigureServices((context, services) =>
+        {
+            //配置
+            services.AddSingleton<ISettingProvider, SettingService>();
+            services.AddHostedService(x => x.GetRequiredService<ISettingProvider>());
+            services.AddSingleton(typeof(ISetter<>), typeof(Setter<>));
 
-
-                services.AddSingleton<IFitService, FitService>();
-                services.AddSingleton<IGpxService, GpxService>();
-            });
+            //Fit
+            services.AddSingleton<IFitService, FitService>();
+            //Gpx
+            services.AddSingleton<IGpxService, GpxService>();
+        });
 
         return builder;
     }
-
 
 
     /// <summary>
@@ -57,7 +56,6 @@ public static class HostBuilder
     /// <returns></returns>
     public static IFitService GetFitService(this IServiceProvider service) =>
         service.GetRequiredService<IFitService>();
-
 
     /// <summary>
     /// 获取 Gpx 服务

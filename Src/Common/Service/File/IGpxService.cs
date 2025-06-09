@@ -137,8 +137,8 @@ public class GpxService(ILogger<FitService> logger) : IGpxService
             AuthorName = authorName,
             AuthorLink = authorLink,
             Description = desc,
-            Keywords = keywords ?? [],
-            Timestamp = time is null ? null : new DateTimeOffset(time.Value, TimeSpan.Zero)
+            Keywords = keywords,
+            Timestamp = time
         };
     }
     //映射 metadata 节点
@@ -219,7 +219,11 @@ public class GpxService(ILogger<FitService> logger) : IGpxService
     //映射 轨迹点
     private static TrackPoint MapperTrackPoint(XElement trkpt, XmlNamespaceManager nsm)
     {
-        //精度
+        //时间
+        var timeString = trkpt.XPathSelectElement("gpx:time", nsm)?.Value;
+        var time = TryParserDateTime(timeString);
+
+        //经度
         var lonString = trkpt.Attribute("lon")?.Value ?? "0.0";
         var lon = double.Parse(lonString);
 
@@ -231,9 +235,7 @@ public class GpxService(ILogger<FitService> logger) : IGpxService
         var altitudeString = trkpt.XPathSelectElement("gpx:ele", nsm)?.Value ?? "0.0";
         var altitude = double.Parse(altitudeString);
 
-        //时间
-        var timeString = trkpt.XPathSelectElement("gpx:time", nsm)?.Value;
-        var time = TryParserDateTime(timeString);
+
 
         ////扩展数据
         //var extensions = trkpt.XPathSelectElement("extensions");
@@ -248,7 +250,7 @@ public class GpxService(ILogger<FitService> logger) : IGpxService
 
         return new TrackPoint
         {
-            Timestamp = time is null ? DateTimeOffset.MinValue : new DateTimeOffset(time.Value, TimeSpan.FromHours(0)),
+            Timestamp = time ?? DateTimeOffset.MinValue, //TODO: 没有时间的采样点等待解决
             Longitude = lon,
             Latitude = lat,
             Altitude = Length.FromMeters(altitude)
@@ -286,13 +288,13 @@ public class GpxService(ILogger<FitService> logger) : IGpxService
 
 
     //尝试转换时间 (yyyy-MM-ddTHH:mm:ssZ)
-    private static DateTime? TryParserDateTime(string? timeString)
+    private static DateTimeOffset? TryParserDateTime(string? timeString)
     {
         try
         {
             if (string.IsNullOrWhiteSpace(timeString)) return null;
-            var dateTime = DateTime.ParseExact(timeString, "yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
-            return DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
+            var dateTime = DateTimeOffset.ParseExact(timeString, "yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
+            return dateTime;
         }
         catch
         {

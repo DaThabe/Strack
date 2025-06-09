@@ -1,9 +1,6 @@
 ﻿using Common;
-using Common.Model.File.Gpx;
-using Common.Service.File;
 using IGPSport;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Strack;
 using XingZhe;
 

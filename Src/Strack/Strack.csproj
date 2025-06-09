@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<OutputType>Exe</OutputType>
+		<OutputType>Library</OutputType>
 		<TargetFramework>net9.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
@@ -15,7 +15,6 @@
 
 	<ItemGroup>
 		
-		<PackageReference Include="UnitsNet" Version="6.0.0-pre014" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
 		<PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.5" />
 		
@@ -25,21 +24,6 @@
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 
-
-		<PackageReference Include="Avalonia" Version="11.3.0" />
-		<PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.0" />
-		<PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.0" />
-
-		<!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
-		<PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.3.0" />
-		
-	</ItemGroup>
-
-
-	<ItemGroup>
-		<Folder Include="UI\Shell\" />
-		<Folder Include="UI\View\" />
-		<Folder Include="ViewModel\" />
 	</ItemGroup>
 
 
@@ -47,13 +31,6 @@
 	  <ProjectReference Include="..\Common\Common.csproj" />
 	  <ProjectReference Include="..\iGPSPORT\IGPSport.csproj" />
 	  <ProjectReference Include="..\XingZhe\XingZhe.csproj" />
-	</ItemGroup>
-
-
-	<ItemGroup>
-	  <None Update="appsetting.json">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </None>
 	</ItemGroup>
 	
 </Project>

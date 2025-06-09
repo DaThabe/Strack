@@ -3,7 +3,6 @@ using Common.Model.File.Gpx;
 using Common.Service.File;
 using IGPSport.Service;
 using Microsoft.Extensions.Logging;
-using System.Runtime.CompilerServices;
 using System.Xml.Linq;
 using XingZhe.Model.Exception;
 using XingZhe.Model.Workout;
@@ -17,6 +16,10 @@ namespace Strack.Service;
 /// </summary>
 public interface IGpxSyncService
 {
+    /// <summary>
+    /// 合并所有路径到一个Gpx文件
+    /// </summary>
+    /// <returns></returns>
     Task CombineAsync();
 
     /// <summary>
@@ -41,13 +44,20 @@ public class GpxSyncService(
     public async Task CombineAsync()
     {
         GpxFile gpx = new();
-        int tmp = 0;
 
         foreach(var i in Directory.EnumerateFiles("XingZhe", "*.gpx"))
         {
             try
             {
                 var cur = await gpxService.LoadFromPathAsync(i);
+
+                foreach (var t in cur.Tracks)
+                {
+                    //更新轨迹名称
+                    var time = t.Points.FirstOrDefault()?.Timestamp ?? DateTimeOffset.Now;
+                    //yyyyMMdd_HHmmss_行者轨迹
+                    t.Name = $"{time.ToOffset(TimeSpan.FromHours(8)):yyyyMMdd_HHmmss}_行者轨迹";
+                }
 
                 gpx.Tracks.AddRange(cur.Tracks);
                 logger.LogTrace("已添加 行者 轨迹:{gpx}", cur);
@@ -64,6 +74,14 @@ public class GpxSyncService(
             {
                 var cur = await gpxService.LoadFromPathAsync(i);
 
+                foreach (var t in cur.Tracks)
+                {
+                    //更新轨迹名称
+                    var time = t.Points.FirstOrDefault()?.Timestamp ?? DateTimeOffset.Now;
+                    //yyyyMMdd_HHmmss_行者轨迹
+                    t.Name = $"{time.ToOffset(TimeSpan.FromHours(8)):yyyyMMdd_HHmmss}_iGPSPORT轨迹";
+                }
+
                 gpx.Tracks.AddRange(cur.Tracks);
                 logger.LogTrace("已添加 IGPSport 轨迹:{gpx}", cur);
             }
@@ -73,8 +91,12 @@ public class GpxSyncService(
             }
         }
 
+        
+
+
         try
         {
+            gpx.Tracks = gpx.Tracks.OrderBy(x => x.Name).ToList();
             await gpxService.SaveAsync(gpx, "", "all.gpx");
         }
         catch(Exception ex)

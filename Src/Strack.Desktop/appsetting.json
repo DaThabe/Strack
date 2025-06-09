@@ -1,0 +1,11 @@
+﻿{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Trace",
+      "Microsoft": "Warning"
+    }
+  },
+  "Database": {
+    "ConnectString": "Data Source=Strack.db"
+  }
+}

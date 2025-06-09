@@ -12,19 +12,19 @@ public static class HostBuilder
     /// <returns></returns>
     public static IHostBuilder UseIGPSport(this IHostBuilder builder)
     {
-        builder
-            .ConfigureServices((context, services) =>
-            {
-                services.AddSingleton<IIGPSportClientProvider, IGPSportClientProvider>();
-                services.AddHostedService(x => x.GetRequiredService<IIGPSportClientProvider>());
-
-                services.AddSingleton<IIGPSportClient, IGPSportClient>();
-            });
+        builder.ConfigureServices((context, services) =>
+        {
+            //客户端容器
+            services.AddSingleton<IIGPSportClientProvider, IGPSportClientProvider>();
+            services.AddHostedService(x => x.GetRequiredService<IIGPSportClientProvider>());
+        });
 
         return builder;
     }
 
-
+    /// <summary>
+    /// 获取iGPSPORT请求客户端容器
+    /// </summary>
     public static IIGPSportClientProvider GetIGPSportClientProvider(this IServiceProvider service) => 
         service.GetRequiredService<IIGPSportClientProvider>();
 }

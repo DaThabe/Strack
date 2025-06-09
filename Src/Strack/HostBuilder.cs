@@ -35,13 +35,12 @@ public static class HostBuilder
 
                     builder.UseSqlite(connectString);
                 });
-
                 //数据库库迁移
                 services.AddHostedService<MigrateHostedService>();
 
+
                 //行者导入
                 services.AddSingleton<IXingzheImport, XingzheImport>();
-
                 //Gpx 同步
                 services.AddSingleton<IGpxSyncService, GpxSyncService>();
             });

@@ -12,16 +12,18 @@ public static class HostBuilder
     /// <returns></returns>
     public static IHostBuilder UseXingZhe(this IHostBuilder builder)
     {
-        builder
-            .ConfigureServices((context, services) =>
-            {
-                services.AddSingleton<IXingZheClientProvider, XingZheClientProvider>();
-                services.AddHostedService(x => x.GetRequiredService<IXingZheClientProvider>());
-            });
+        builder.ConfigureServices((context, services) =>
+        {
+            services.AddSingleton<IXingZheClientProvider, XingZheClientProvider>();
+            services.AddHostedService(x => x.GetRequiredService<IXingZheClientProvider>());
+        });
 
         return builder;
     }
 
+    /// <summary>
+    /// 获取行者请求客户端容器
+    /// </summary>
     public static IXingZheClientProvider GetXingZheClientProvider(this IServiceProvider service) =>
         service.GetRequiredService<IXingZheClientProvider>();
 }
