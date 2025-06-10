@@ -36,13 +36,13 @@ public class Metadata
     /// <summary>
     /// 创建时间
     /// </summary>
-    public DateTimeOffset? Timestamp { get; set; }
+    public DateTimeOffset? Time { get; set; }
 
 
     public override string ToString()
     {
         return this.ToStringBuilder()
-            .AddParam(Timestamp, "时间")
+            .AddParam(Time, "时间")
             .AddParam(Name, "名称")
             .AddParam(Keywords, "关键字")
             .ToString();

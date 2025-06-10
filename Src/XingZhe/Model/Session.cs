@@ -1,4 +1,5 @@
-﻿using XingZhe.Service;
+﻿using XingZhe.Model.User;
+using XingZhe.Service;
 
 
 namespace XingZhe.Model;

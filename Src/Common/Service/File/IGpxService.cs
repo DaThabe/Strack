@@ -1,7 +1,7 @@
-﻿using Common.Model.Exception;
+﻿using Common.Extension;
+using Common.Model.Exception;
 using Common.Model.File.Gpx;
 using Microsoft.Extensions.Logging;
-using System.Globalization;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.XPath;
@@ -126,10 +126,9 @@ public class GpxService(ILogger<FitService> logger) : IGpxService
 
         //关键字
         var keywords = metadata?.XPathSelectElement("gpx:keywords", nsm)?.Value?.Split([';', ',']);
-        
+
         //时间 yyyy-MM-ddTHH:mm:ssZ
-        var timeString = metadata?.XPathSelectElement("gpx:time", nsm)?.Value;
-        var time = TryParserDateTime(timeString);
+        var time = metadata?.XPathSelectElement("gpx:time", nsm)?.Value.ToDateTimeOffsetOrDefault();
 
         return new Metadata
         {
@@ -138,7 +137,7 @@ public class GpxService(ILogger<FitService> logger) : IGpxService
             AuthorLink = authorLink,
             Description = desc,
             Keywords = keywords,
-            Timestamp = time
+            Time = time
         };
     }
     //映射 metadata 节点
@@ -153,7 +152,7 @@ public class GpxService(ILogger<FitService> logger) : IGpxService
         if(!string.IsNullOrWhiteSpace(model.Description)) node.Add(new XElement(ns + "desc", model.Description));
         
         //时间
-        if (model.Timestamp is DateTimeOffset time) node.Add(new XElement(ns + "time", time.UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ssZ")));
+        if (model.Time is DateTimeOffset time) node.Add(new XElement(ns + "time", time.UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ssZ")));
 
         //作者
         if (!string.IsNullOrWhiteSpace(model.AuthorName))
@@ -219,43 +218,32 @@ public class GpxService(ILogger<FitService> logger) : IGpxService
     //映射 轨迹点
     private static TrackPoint MapperTrackPoint(XElement trkpt, XmlNamespaceManager nsm)
     {
-        //时间
-        var timeString = trkpt.XPathSelectElement("gpx:time", nsm)?.Value;
-        var time = TryParserDateTime(timeString);
-
         //经度
-        var lonString = trkpt.Attribute("lon")?.Value ?? "0.0";
-        var lon = double.Parse(lonString);
-
+        var lon = trkpt.Attribute("lon")?.Value.ToDoubleOrDefault() ?? throw new ArgumentException("缺少 lon 属性");
         //维度
-        var latString = trkpt.Attribute("lat")?.Value ?? "0.0";
-        var lat = double.Parse(latString);
+        var lat = trkpt.Attribute("lat")?.Value.ToDoubleOrDefault() ?? throw new ArgumentException("缺少 lat 属性");
 
+        //时间
+        var time = trkpt.XPathSelectElement("gpx:time", nsm)?.Value.ToDateTimeOffsetOrDefault();
         //海拔
-        var altitudeString = trkpt.XPathSelectElement("gpx:ele", nsm)?.Value ?? "0.0";
-        var altitude = double.Parse(altitudeString);
+        var altitude = trkpt.XPathSelectElement("gpx:ele", nsm)?.Value.ToDoubleOrDefault();
 
 
+        //扩展数据
+        var extensionsNode = trkpt.XPathSelectElement("gpx:extensions", nsm);
+        var extensions = extensionsNode is null ? null : MapperTrackPointExtension(extensionsNode, nsm);
 
-        ////扩展数据
-        //var extensions = trkpt.XPathSelectElement("extensions");
-        ////速度
-        //var speedString = extensions?.XPathSelectElement("speed")?.Value;
-        ////踏频
-        //var cadenceString = extensions?.XPathSelectElement("cadence")?.Value;
-        ////心率
-        //var heartrateString = extensions?.XPathSelectElement("heartrate")?.Value;
-        ////功率
-        //var powerString = extensions?.XPathSelectElement("power")?.Value;
 
         return new TrackPoint
         {
-            Timestamp = time ?? DateTimeOffset.MinValue, //TODO: 没有时间的采样点等待解决
             Longitude = lon,
             Latitude = lat,
-            Altitude = Length.FromMeters(altitude)
+            Time = time,
+            Altitude = altitude is null ? null : Length.FromMeters(altitude.Value),
+            Extension = extensions
         };
     }
+
     //映射 trkpt 节点
     private static XElement MapperTrackPoint(TrackPoint model, XNamespace ns)
     {
@@ -264,10 +252,50 @@ public class GpxService(ILogger<FitService> logger) : IGpxService
         //基础属性
         node.Add(new XAttribute("lon", Math.Round(model.Longitude, 5)));
         node.Add(new XAttribute("lat", Math.Round(model.Latitude, 5)));
-        node.Add(new XElement(ns + "time", model.Timestamp.UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ssZ")));
+
+        //时间
+        if(model.Time is DateTimeOffset time) node.Add(new XElement(ns + "time", time.UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ssZ")));
+        //海拔
         if (model.Altitude is Length len) node.Add(new XElement(ns + "ele", Math.Round(len.Meters, 1)));
 
-        //扩展属性
+        //添加扩展属性
+        if (model.Extension is not null && MapperTrackPointExtension(model.Extension, ns) is XElement extensionNode)
+        {
+            node.Add(extensionNode);
+        }
+
+        return node;
+    }
+
+
+
+    //映射 trkpt.extension 节点
+    private static TrackPointExtension MapperTrackPointExtension(XElement extensions, XmlNamespaceManager nsm)
+    {
+        //速度 (米/秒)
+        var speed = extensions?.XPathSelectElement("speed", nsm)?.Value.ToDoubleOrDefault();
+        //踏频 (次/分)
+        var cadence = extensions?.XPathSelectElement("cadence", nsm)?.Value.ToDoubleOrDefault();
+        //心率 (次/分)
+        var heartrate = extensions?.XPathSelectElement("heartrate", nsm)?.Value.ToDoubleOrDefault();
+        //功率 (瓦)
+        var power = extensions?.XPathSelectElement("power", nsm)?.Value.ToDoubleOrDefault();
+        //距离 (米)
+        var distance = extensions?.XPathSelectElement("distance", nsm)?.Value.ToDoubleOrDefault();
+
+        return new TrackPointExtension()
+        {
+            Speed = speed is null ? null : Speed.FromMetersPerSecond(speed.Value),
+            Cadence = cadence is null ? null : Frequency.FromCyclesPerMinute(cadence.Value),
+            Heartrate = heartrate is null ? null : Frequency.FromBeatsPerMinute(heartrate.Value),
+            Distance = distance is null ? null : Length.FromMeters(distance.Value),
+            Power = power is null ? null : Power.FromWatts(power.Value),
+        };
+    }
+
+    //映射轨迹点扩展
+    private static XElement? MapperTrackPointExtension(TrackPointExtension model, XNamespace ns)
+    {
         List<XElement> extensionElements = [];
 
         if (model.Speed is Speed speed) extensionElements.Add(new XElement(ns + "speed", (int)speed.MetersPerSecond));
@@ -279,27 +307,10 @@ public class GpxService(ILogger<FitService> logger) : IGpxService
         //添加扩展属性
         if (extensionElements.Count > 0)
         {
-            XElement extensions = new(ns + "extensions", extensionElements);
-            node.Add(extensions);
+            return new XElement(ns + "extensions", extensionElements);
         }
 
-        return node;
-    }
-
-
-    //尝试转换时间 (yyyy-MM-ddTHH:mm:ssZ)
-    private static DateTimeOffset? TryParserDateTime(string? timeString)
-    {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(timeString)) return null;
-            var dateTime = DateTimeOffset.ParseExact(timeString, "yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
-            return dateTime;
-        }
-        catch
-        {
-            return null;
-        }
+        return null;
     }
 
 

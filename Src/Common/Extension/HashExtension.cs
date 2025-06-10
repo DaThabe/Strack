@@ -5,42 +5,28 @@ namespace Common.Extension;
 
 public static class HashExtension
 {
-    public static Guid CombineToGuid(params object[] parameters)
+    /// <summary>
+    /// 将对象转为字符串后转为Guid
+    /// </summary>
+    /// <param name="obj"></param>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException"></exception>
+    public static Guid ToHashedGuid(this object obj)
     {
-        var input = string.Join("|", parameters.Select(p => p?.ToString() ?? "null"));
-        return CreateDeterministicGuid(_namespaceGuid, input);
+        return obj.ToString().ToHashedGuid();
     }
 
-    private static Guid CreateDeterministicGuid(Guid namespaceId, string name)
+    public static Guid ToHashedGuid(this string? str)
     {
-        // Convert namespace Guid to bytes (big-endian)
-        byte[] namespaceBytes = namespaceId.ToByteArray();
-        SwapGuidByteOrder(namespaceBytes);
+        if (string.IsNullOrWhiteSpace(str)) throw new InvalidOperationException("无法生成Guid,对象无法转为含值字符串");
 
-        // Combine namespace and name bytes
-        byte[] nameBytes = Encoding.UTF8.GetBytes(name);
-        byte[] data = namespaceBytes.Concat(nameBytes).ToArray();
+        var data = Encoding.UTF8.GetBytes(str);
+        var hash = SHA1.HashData(data);
 
-        // Hash with SHA1
-        byte[] hash = SHA1.HashData(data);
+        // 使用前 16 字节构造 Guid（SHA1 输出是 20 字节）
+        var guidBytes = new byte[16];
+        Array.Copy(hash, guidBytes, 16);
 
-        // Create GUID from first 16 bytes of hash
-        hash[6] = (byte)(hash[6] & 0x0F | 0x50); // Version 5
-        hash[8] = (byte)(hash[8] & 0x3F | 0x80); // Variant RFC4122
-
-        SwapGuidByteOrder(hash); // back to little-endian
-
-        return new Guid([.. hash.Take(16)]);
+        return new Guid(guidBytes);
     }
-
-    private static void SwapGuidByteOrder(byte[] guid)
-    {
-        // Guid bytes order fix for SHA compatibility (RFC 4122)
-        Array.Reverse(guid, 0, 4);
-        Array.Reverse(guid, 4, 2);
-        Array.Reverse(guid, 6, 2);
-    }
-
-
-    private static readonly Guid _namespaceGuid = Guid.Parse("e1a19c10-456b-4f6d-9c2b-dcdd68b38e8b");
 }

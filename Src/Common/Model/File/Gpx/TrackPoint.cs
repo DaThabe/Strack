@@ -1,5 +1,5 @@
 ﻿using Common.Extension;
-using System.Xml.Linq;
+using Common.Model.Data;
 using UnitsNet;
 
 namespace Common.Model.File.Gpx;
@@ -8,13 +8,8 @@ namespace Common.Model.File.Gpx;
 /// <summary>
 /// 轨迹点
 /// </summary>
-public class TrackPoint
+public class TrackPoint : IGeoPosition
 {
-    /// <summary>
-    /// 时间
-    /// </summary>
-    public required DateTimeOffset Timestamp { get; set; }
-
     /// <summary>
     /// 经度
     /// </summary>
@@ -25,11 +20,32 @@ public class TrackPoint
     /// </summary>
     public required double Latitude { get; set; }
 
+
+    /// <summary>
+    /// 时间
+    /// </summary>
+    public DateTimeOffset? Time { get; set; }
+
     /// <summary>
     /// 海拔高度
     /// </summary>
     public Length? Altitude { get; set; }
 
+
+    /// <summary>
+    /// 扩展数据
+    /// </summary>
+    public TrackPointExtension? Extension { get; set; }
+
+
+    public override string ToString() => this.ToCoordinateString();
+}
+
+/// <summary>
+/// 轨迹点扩展
+/// </summary>
+public class TrackPointExtension
+{
     /// <summary>
     /// 速度
     /// </summary>
@@ -64,10 +80,6 @@ public class TrackPoint
     public override string ToString()
     {
         return this.ToStringBuilder()
-            .AddParam(Timestamp, "时间")
-            .AddParam(Longitude, "经度")
-            .AddParam(Latitude, "维度")
-            .AddParam(Altitude, "海拔")
             .AddParam(Speed, "速度")
             .AddParam(Distance, "距离")
             .AddParam(Cadence, "踏频")

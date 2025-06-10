@@ -1,153 +1,54 @@
-﻿//using Newtonsoft.Json;
-//using Newtonsoft.Json.Linq;
-//using Strack.Model;
-//using Strack.Model.Entity.Activity;
-//using System.Xml.Linq;
-//using UnitsNet;
-//using UnitsNet.Units;
+﻿using Common.Model.File.Fit;
+using Common.Model.File.Gpx;
+using Common.Service.File;
+using System.Xml.Linq;
+using UnitsNet;
 
-//namespace Strack.Extension;
+namespace Common.Extension;
 
 
 
-///// <summary>
-///// Gpx 扩展方法
-///// </summary>
-//public static class FileExtension
-//{
-//    /// <summary>
-//    /// 将WorkoutInfo转为GPX文档 <br/>
-//    /// 致谢项目 <a href="https://github.com/Harry-Chen/xingzhe-gpx-processor/blob/master/merge.py">xingzhe-gpx-processor</a> 给出GPX1.1版本可以附加心率,踏频等信息
-//    /// </summary>
-//    /// <param name="info">活动信息实例</param>
-//    public static XDocument ToGPXDocument(this ActivityEntity info)
-//    {
-//        XNamespace ns = "http://www.topografix.com/GPX/1/1";
-//        XNamespace xsi = "http://www.w3.org/2001/XMLSchema-instance";
+/// <summary>
+/// 文件扩展
+/// </summary>
+public static class FileExtension
+{
+    public static GpxFile ToGpxFile(this FitFile fit)
+    {
+        GpxFile gpx = new();
 
-//        var gpx = new XElement(ns + "gpx",
-//            new XAttribute(XNamespace.Xmlns + "xsi", xsi),
-//            new XAttribute(XNamespace.Xmlns + "xsd", "http://www.w3.org/2001/XMLSchema"),
-//            new XAttribute(xsi + "schemaLocation", "http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd"),
-//            new XAttribute("version", "1.1"),
-//            new XAttribute("creator", "[imxingzhe.com, XingzheExport]"),
+        gpx.Metadata.Time = DateTimeOffset.Now;
+        gpx.Metadata.AuthorName = "Strack";
 
-//            new XElement(ns + "name", info.Title),
-//            new XElement(ns + "desc", "由 [XingzheExport] 根据 [行者] 软件 生成"),
-//            new XElement(ns + "time", info.BeginTimeUtc.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+        Track track = new() { Name = "运动轨迹" };
 
-//            new XElement(ns + "trk",
-//                new XElement(ns + "name", "XingzheExport"),
-//                new XElement(ns + "trkseg", from p in info.TrackPoints select
-//                    new XElement(ns + "trkpt",
-//                        new XAttribute("lat", p.LatitudeDegrees),
-//                        new XAttribute("lon", p.LongitudeDegrees),
+        foreach (var x in fit.Records)
+        {
+            if (x.Timestamp == null) continue;
+            if (x.Longitude == null) continue;
+            if (x.Latitude == null) continue;
 
-//                        new XElement(ns + "ele", p.AltitudeMeters),
-//                        new XElement(ns + "time", p.TimestampUTC.ToString("yyyy-MM-ddTHH:mm:ssZ"),
-//                        new XElement(ns + "extensions",
-//                            new XElement(ns + "speed", Math.Round(p.SpeedMetersPerSecond),
-//                            new XElement(ns + "cadence", p.CadenCyclesPerMinute),
-//                            new XElement(ns + "heartrate", p.HeartrateBeatPerMinute),
-//                            new XElement(ns + "power", p.PowerWatts)))))))));
+            var point = new TrackPoint()
+            {
+                Longitude = x.Longitude.Value,
+                Latitude = x.Latitude.Value,
+                Altitude = x.Altitude,
+                Time = x.Timestamp,
+                Extension = new TrackPointExtension()
+                {
+                    Cadence = x.Cadence,
+                    Distance = x.Distance,
+                    Heartrate = x.Heartrate,
+                    Power = x.Power,
+                    Speed = x.Speed,
+                    Temperature = x.Temperature
+                }
+            };
 
-//        return new XDocument(new XDeclaration("1.0", "UTF-8", null), gpx);
-//    }
+            track.Points.Add(point);
+        }
 
-//    /// <summary>
-//    /// 将WorkoutInfo转为TCX文档
-//    /// </summary>
-//    /// <param name="info"></param>
-//    /// <returns></returns>
-//    public static XDocument ToTCXDocument(this ActivityEntity info)
-//    {
-//        XNamespace ns = "http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2";
-
-//        var sportTypeString = info.Sport switch
-//        {
-//            ActivityType.Running => "Running",
-//            ActivityType.Ride => "Cycling",
-//            ActivityType.Hiking => "Hiking",
-//            ActivityType.Swim => "Swimming",
-//            ActivityType.Ski => "Skiing",
-//            ActivityType.Workout => "Fitness",
-//            _ => "Other"
-//        };
-
-//        var gpx = new XElement(ns + "TrainingCenterDatabase", 
-//            new XElement(ns + "Activities",
-//                new XElement(ns + "Activity", 
-//                    new XAttribute("Sport", sportTypeString), 
-
-//                    new XElement(ns + "Id", info.BeginTimeUtc), 
-//                    new XElement(ns + "Lap", 
-//                        new XAttribute("StartTime", info.BeginTimeUtc),
-
-//                        new XElement(ns + "TotalTimeSeconds", info.DurationSeconds),
-//                        new XElement(ns + "DistanceMeters", info.DistanceMeters),
-//                        new XElement(ns + "Calories", info.CaloriesKilocalories),
-//                        new XElement(ns + "Intensity", "Active"),
-//                        new XElement(ns + "TriggerMethod", "Manual"),
-//                        new XElement(ns + "Track", from p in info.TrackPoints select 
-//                            new XElement(ns + "Trackpoint",
-//                                new XElement(ns + "Time", p.TimestampUTC.ToString("yyyy-MM-ddTHH:mm:ssZ")),
-//                                new XElement(ns + "Position",
-//                                    new XElement(ns + "LatitudeDegrees", p.LatitudeDegrees),
-//                                    new XElement(ns + "LongitudeDegrees", p.LongitudeDegrees)),
-//                                new XElement(ns + "AltitudeMeters", p.AltitudeMeters),
-//                                new XElement(ns + "DistanceMeters", p.DistanceMeters),
-//                                new XElement(ns + "HeartRateBpm",
-//                                    new XElement(ns + "Value", p.HeartrateBeatPerMinute)),
-//                                new XElement(ns + "Cadence", p.CadenCyclesPerMinute),
-//                                new XElement(ns + "Power", p.PowerWatts)))))));
-
-//        return new XDocument(new XDeclaration("1.0", "UTF-8", null), gpx);
-//    }
-
-
-//    /// <summary>
-//    /// 保存文档到指定路径
-//    /// </summary>
-//    /// <param name="document"></param>
-//    /// <param name="path"></param>
-//    /// <returns></returns>
-//    public static async Task SaveAsync(this XDocument document, string path)
-//    {
-//        var folder = Path.GetDirectoryName(path);
-//        if(!string.IsNullOrWhiteSpace(folder))
-//        {
-//            Directory.CreateDirectory(folder);
-//        }
-
-//        using var fs = File.OpenWrite(path);
-//        await document.SaveAsync(fs, SaveOptions.None, default);
-//    }
-
-
-
-
-//    /// <summary>
-//    /// 转为Json
-//    /// </summary>
-//    /// <param name="value"></param>
-//    /// <returns></returns>
-//    public static JToken ToJson(this object value)
-//    {
-//        return JToken.FromObject(value);
-//    }
-    
-//    /// <summary>
-//    /// 保存Json到指定路径
-//    /// </summary>
-//    /// <param name="jToken"></param>
-//    /// <param name="path"></param>
-//    /// <returns></returns>
-//    public static async Task SaveAsync(this JToken jToken, string path)
-//    {
-//        var content = JsonConvert.SerializeObject(jToken);
-
-//        var folder = Path.GetDirectoryName(path);
-//        if (!string.IsNullOrWhiteSpace(folder)) Directory.CreateDirectory(folder);
-//        await File.WriteAllTextAsync(path, content);
-//    }
-//}
+        gpx.Tracks.Add(track);
+        return gpx;
+    }
+}

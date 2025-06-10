@@ -1,4 +1,5 @@
-﻿using Common.Model.File.Fit;
+﻿using Common.Extension;
+using Common.Model.File.Fit;
 using Dynastream.Fit;
 using Microsoft.Extensions.Logging;
 using UnitsNet;
@@ -22,28 +23,10 @@ public class FitService(ILogger<FitService> logger) : IFitService
         {
             logger.LogTrace("正在读取Fit文件");
 
-            // 复制 stream 内容
-            using var memory = new MemoryStream();
-            await fitSource.CopyToAsync(memory).ConfigureAwait(false);
+            await using var memory = new MemoryStream();
+            await fitSource.CopyToAsync(memory);
             memory.Seek(0, SeekOrigin.Begin);
 
-            var result =  await Task.Run(() => Create(memory));
-            logger.LogTrace("Fit 文件读取完成");
-
-            return result;
-        }
-        catch (FitException)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            throw new FitException("Fit文件加载失败", ex);
-        }
-
-        //创建 Fit 文件
-        static FitFile Create(MemoryStream fitSource)
-        {
             Decode decode = new();
             var fitFile = new FitFile();
 
@@ -70,8 +53,18 @@ public class FitService(ILogger<FitService> logger) : IFitService
                 }
             };
 
-            decode.Read(fitSource);
+            await Task.Run(() => decode.Read(memory));
+
+            logger.LogTrace("Fit 文件读取完成");
             return fitFile;
+        }
+        catch (FitException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            throw new FitException("Fit文件加载失败", ex);
         }
     }
 
@@ -237,8 +230,9 @@ public class FitService(ILogger<FitService> logger) : IFitService
         return new Record()
         {
             Timestamp = timestamp is null ? null : new DateTimeOffset(1989, 12, 31, 0, 0, 0, TimeSpan.Zero).AddSeconds(timestamp.Value),
-            Longitude = lon is null ? null : lon * (180.0 / Math.Pow(2, 31)),
-            Latitude = lat is null ? null : lat * (180.0 / Math.Pow(2, 31)),
+
+            Longitude = lon is null ? null : (lon.Value * (180.0 / Math.Pow(2, 31))).Round(6),
+            Latitude = lat is null ? null : (lat.Value * (180.0 / Math.Pow(2, 31))).Round(6),
 
             Heartrate = heartRate is null ? null : Frequency.FromBeatsPerMinute(heartRate.Value),
             Cadence = cadence is null ? null : Frequency.FromCyclesPerMinute(cadence.Value),

@@ -2,7 +2,7 @@
 
 namespace Common.Extension;
 
-internal static class ToStringExtension
+public static class ToStringExtension
 {
     public static ToStringBuilder ToStringBuilder(this object _)
     {
@@ -11,7 +11,7 @@ internal static class ToStringExtension
 }
 
 
-internal class ToStringBuilder
+public class ToStringBuilder
 {
     public ToStringBuilder AddParam(object? value, string name)
     {

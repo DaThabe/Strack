@@ -1,6 +1,6 @@
 ﻿using UnitsNet;
 
-namespace XingZhe.Model;
+namespace XingZhe.Model.User;
 
 /// <summary>
 /// 用户信息

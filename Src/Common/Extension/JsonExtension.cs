@@ -55,7 +55,7 @@ public static class JsonExtension
     /// <param name="token">Json</param>
     /// <param name="path">路径</param>
     /// <returns>目标值或默认值</returns>
-    public static T? GetValueOrDefault<T>(this JToken token, string path) where T : notnull
+    public static T? GetValueOrDefault<T>(this JToken token, string path)
     {
         try
         {

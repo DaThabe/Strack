@@ -7,9 +7,13 @@ using Newtonsoft.Json.Linq;
 using System.Globalization;
 using System.Xml.Linq;
 using UnitsNet;
-using XingZhe.Model;
-using XingZhe.Model.Exception;
-using XingZhe.Model.Workout;
+using UnitsNet.Units;
+using XingZhe.Exceptions;
+using XingZhe.Model.User;
+using XingZhe.Model.User.Workout;
+using XingZhe.Model.User.Workout.Detail;
+using XingZhe.Model.User.Workout.Record;
+using XingZhe.Model.User.Workout.Summary;
 
 namespace XingZhe.Service;
 
@@ -26,20 +30,20 @@ public interface IXingZheClient
     Task<UserInfo> GetUserInfoAsync();
 
     /// <summary>
-    /// 获取一些活动信息
+    /// 获取训练摘要
     /// </summary>
     /// <param name="offset">偏移</param>
     /// <param name="limit">数量</param>
     /// <param name="sport">运动类型</param>
     /// <returns></returns>
-    Task<List<WorkoutSummary>> GetWorkoutSummariesAsync(int offset, int limit, WorkoutType? sport = null);
+    Task<List<WorkoutSummary>> GetWorkoutSummaryAsync(int offset, int limit, WorkoutType? sport = null);
 
     /// <summary>
-    /// 获取所有训练简要
+    /// 获取训练摘要
     /// </summary>
     /// <param name="sport">运动类型</param>
     /// <returns></returns>
-    IAsyncEnumerable<WorkoutSummary> GetWorkoutSummariesAsync(WorkoutType? sport = null);
+    IAsyncEnumerable<WorkoutSummary> GetWorkoutSummaryAsync(WorkoutType? sport = null);
 
     /// <summary>
     /// 获取训练明细
@@ -49,26 +53,26 @@ public interface IXingZheClient
     Task<WorkoutDetail> GetWorkoutDetailAsync(long workoutId);
 
     /// <summary>
-    /// 获取训练Gpx文件 (轨迹点只有经纬度,海拔,时间)
+    /// 获取训练轨迹 (Gpx文件, 仅包含经纬度,时间)
     /// </summary>
     /// <param name="workoutId">运动记录Id</param>
     /// <returns></returns>
-    Task<GpxFile> GetWorkoutGpxFileAsync(long workoutId);
+    Task<GpxFile> GetWorkoutTrackAsync(long workoutId);
 
     /// <summary>
-    /// 获取训练采样点明细
+    /// 获取训练记录点
     /// </summary>
     /// <param name="workoutId">运动记录Id</param>
     /// <returns></returns>
-    Task<List<Record>> GetWorkoutStreamAsync(long workoutId);
+    Task<List<RecordPoint>> GetWorkoutRecordPointAsync(long workoutId);
 }
 
 /// <summary>
 /// 行者客户端
 /// </summary>
-/// <param name="logger"></param>
+/// <param name="services"></param>
 /// <param name="client"></param>
-public class XingZheClient(IServiceProvider services,HttpClient client) : IXingZheClient
+public class XingZheClient(IServiceProvider services, HttpClient client) : IXingZheClient
 {
     public async Task<UserInfo> GetUserInfoAsync()
     {
@@ -119,9 +123,9 @@ public class XingZheClient(IServiceProvider services,HttpClient client) : IXingZ
         }
     }
 
-    public async Task<List<WorkoutSummary>> GetWorkoutSummariesAsync(int offset = 0, int limit = 24, WorkoutType? sport = null)
+    public async Task<List<WorkoutSummary>> GetWorkoutSummaryAsync(int offset = 0, int limit = 24, WorkoutType? sport = null)
     {
-        logger.LogTrace("正在获取训练简要, Offset:{offset}, Limit:{limit}, Sport:{sport}", offset, limit, sport);
+        logger.LogTrace("正在获取训练摘要列表, Offset:{offset}, Limit:{limit}, Sport:{sport}", offset, limit, sport);
 
         try
         {
@@ -129,24 +133,24 @@ public class XingZheClient(IServiceProvider services,HttpClient client) : IXingZ
             var root = await client.GetJsonAsync(url);
             var data = root.SelectToken("data.data") ?? throw new ArgumentException("响应结果不存在 data.data 节点");
 
-            List<WorkoutSummary> workoutSummaries = [];
+            List<WorkoutSummary> items = [];
 
             foreach (var node in data)
             {
-                var item = ParserItem(node);
-                workoutSummaries.Add(item);
+                var item = MapperWorkoutSummary(node);
+                items.Add(item);
             }
 
-            logger.LogInformation("训练简要获取完成, 数量:{count}", workoutSummaries.Count);
-            return workoutSummaries;
+            logger.LogInformation("训练摘要列表获取完成, 数量:{count}", items.Count);
+            return items;
         }
         catch (Exception ex)
         {
-            throw new XingZheAPIException("训练简要获取失败", ex);
+            throw new XingZheAPIException("训练摘要列表获取失败", ex);
         }
 
         //转换一个元素
-        WorkoutSummary ParserItem(JToken node)
+        static WorkoutSummary MapperWorkoutSummary(JToken node)
         {
             //训练Id
             var id = node.GetValue<long>("id");
@@ -157,6 +161,8 @@ public class XingZheClient(IServiceProvider services,HttpClient client) : IXingZ
 
             //训练类型
             var sportType = node.GetValue<WorkoutType>("sport");
+            //缩略图网址
+            var thumbnail = node.GetValue<string>("thumbnail");
 
             //平均均速 (千米时)
             var avgSpeed = node.GetValue<double>("avg_speed");
@@ -171,22 +177,46 @@ public class XingZheClient(IServiceProvider services,HttpClient client) : IXingZ
                 Id = id,
                 Title = title,
                 Type = sportType,
-                Timestamp = beginTime.ToBeijingTime(),
+                StartTime = beginTime.ToBeijingTime(),
+                ThumbnailUrl = thumbnail,
                 Distance = Length.FromMeters(distance),
                 Duration = TimeSpan.FromSeconds(duration),
                 AvgSpeed = Speed.FromKilometersPerHour(avgSpeed)
             };
 
-            logger.LogTrace("活动信息获取完成:{info}", summary);
             return summary;
         }
     }
-    public async IAsyncEnumerable<WorkoutSummary> GetWorkoutSummariesAsync(WorkoutType? sport = null)
+    public async IAsyncEnumerable<WorkoutSummary> GetWorkoutSummaryAsync(WorkoutType? sport = null)
     {
-        for (int offset = 0, limit = 24; true; offset += limit)
+        int retryCount = 0;
+
+        for (int offset = 0, limit = 1000; true; offset += limit)
         {
-            var results = await GetWorkoutSummariesAsync(offset, limit, sport);
-            if (results.Count == 0) break;
+            List<WorkoutSummary> results;
+
+            try
+            {
+                results = await GetWorkoutSummaryAsync(offset, limit, sport);
+                retryCount = 0;
+                if (results.Count == 0) break;
+            }
+            catch(XingZheAPIException ex) when(ex.InnerException is HttpRequestException httpEx)
+            {
+                if (retryCount > 3)
+                {
+                    logger.LogError(ex, "训练摘要列表获取失败,已重试3次, 结束请求");
+                    break;
+                }
+
+                logger.LogError(ex, "训练摘要列表请求失败:{code}, 将在1秒后重新请求", httpEx.StatusCode);
+
+                await Task.Delay(1000);
+                offset -= limit;
+                retryCount++;
+                
+                continue;
+            }
 
             foreach (var i in results) yield return i;
         }
@@ -196,7 +226,7 @@ public class XingZheClient(IServiceProvider services,HttpClient client) : IXingZ
 
     public async Task<WorkoutDetail> GetWorkoutDetailAsync(long workoutId)
     {
-        logger.LogTrace("正在获取训练详情, WorkoutId:{workoutId}", workoutId);
+        logger.LogTrace("正在获取训练明细, WorkoutId:{workoutId}", workoutId);
 
         try
         {
@@ -205,75 +235,158 @@ public class XingZheClient(IServiceProvider services,HttpClient client) : IXingZ
             var workout = root.SelectToken("data.workout") ?? throw new ArgumentException("响应结果不存在 data.workout 节点");
 
             //标题
-            var title = workout.GetValue<string>("title");
+            var title = workout.GetValueOrDefault<string?>("title");
             //开始时间 (Unix Utc+8)
-            var start_time = workout.GetValue<long>("start_time");
+            var start_time = workout.GetValueOrDefault<long?>("start_time");
             //开始时间 (Unix Utc+8)
-            var end_time = workout.GetValue<long>("end_time");
+            var end_time = workout.GetValueOrDefault<long?>("end_time");
             //训练类型
-            var sport = workout.GetValue<WorkoutType>("sport");
-
-            //平均海拔 (米)
-            var avg_altitude = workout.GetValue<double>("avg_altitude");
-            //平均踏频 (次/分钟)
-            var avg_cadence = workout.GetValue<double>("avg_cadence");
-            //平均心率 (次/分钟)
-            var avg_heartrate = workout.GetValue<double>("avg_heartrate");
-            //平均速度 (千米/时)
-            var avg_speed = workout.GetValue<double>("avg_speed");
-
-            //最大海拔 (米)
-            var max_altitude = workout.GetValue<double>("max_altitude");
-            //最大踏频  (次/分钟)
-            var max_cadence = workout.GetValue<double>("max_cadence");
-            //最大心率  (次/分钟)
-            var max_heartrate = workout.GetValue<double>("max_heartrate");
-            //最大速度 (千米/时)
-            var max_speed = workout.GetValue<double>("max_speed");
-
-            //卡路里 (千卡)
-            var calories = workout.GetValue<int>("calories");
+            var sport = workout.GetValueOrDefault<WorkoutType?>("sport") ?? WorkoutType.Other;
+            //卡路里 (卡)
+            var calories = workout.GetValueOrDefault<int?>("calories");
             //总距离 (米)
-            var distance = workout.GetValue<int>("distance");
+            var distance = workout.GetValueOrDefault<int?>("distance");
             //总时间 (秒)
-            var duration = workout.GetValue<int>("duration");
+            var duration = workout.GetValueOrDefault<int?>("duration");
 
 
-            WorkoutDetail ActivityDetail = new()
+            //海拔 (米)
+            var avg_altitude = workout.GetValueOrDefault<double?>("avg_altitude");
+            var max_altitude = workout.GetValueOrDefault<double?>("max_altitude");
+
+            
+            //踏频  (次/分钟)
+            var avg_cadence = workout.GetValueOrDefault<double?>("avg_cadence");
+            var max_cadence = workout.GetValueOrDefault<double?>("max_cadence");
+
+
+            //下坡时间 (秒)
+            var down_duration = workout.GetValueOrDefault<int?>("grade_data.down_duration");
+            //下坡距离 (米)
+            var down_distance = workout.GetValueOrDefault<int?>("grade_data.down_distance");
+
+            //上坡时间 (秒)
+            var up_duration = workout.GetValueOrDefault<int?>("grade_data.up_duration");
+            //上坡距离 (米)
+            var up_distance = workout.GetValueOrDefault<int?>("grade_data.up_distance");
+
+            //平路时间 (秒)
+            var flat_duration = workout.GetValueOrDefault<int?>("grade_data.flat_duration");
+            //平路距离 (米)
+            var flat_distance = workout.GetValueOrDefault<int?>("grade_data.flat_distance");
+
+
+            //爬升坡度 (百分比)
+            var avg_grade = workout.GetValueOrDefault<double?>("avg_grade");
+            var min_grade = workout.GetValueOrDefault<double?>("min_grade");
+            var max_grade = workout.GetValueOrDefault<double?>("max_grade");
+
+            //心率  (次/分钟)
+            var avg_heartrate = workout.GetValueOrDefault<double?>("avg_heartrate");
+            var max_heartrate = workout.GetValueOrDefault<double?>("max_heartrate");
+
+
+            //功率  (瓦)
+            var power_avg = workout.GetValueOrDefault<double?>("power_avg");
+            var power_max = workout.GetValueOrDefault<double?>("power_max");
+            var power_ftp = workout.GetValueOrDefault<double?>("power_ftp");
+            //正常化功率 (瓦)
+            var power_np = workout.GetValueOrDefault<double?>("power_np");
+            //强度因子
+            var power_if = workout.GetValueOrDefault<double?>("power_if");
+            //变异指数
+            var power_vi = workout.GetValueOrDefault<double?>("power_vi");
+            //训练压力得分
+            var power_tss = workout.GetValueOrDefault<int?>("power_tss");
+
+
+            //速度 (千米/时)
+            var avg_speed = workout.GetValueOrDefault<double?>("avg_speed");
+            var max_speed = workout.GetValueOrDefault<double?>("max_speed");
+
+
+            //温度 (摄氏度)
+            var avg_temp = workout.GetValueOrDefault<double?>("weather.avg_temp");
+            var max_temp = workout.GetValueOrDefault<double?>("weather.max_temp");
+            var min_temp = workout.GetValueOrDefault<double?>("weather.min_temp");
+
+
+            WorkoutDetail data = new()
             {
                 Id = workoutId,
                 Title = title,
-                BeginTime = start_time.ToBeijingTime(),
-                FinishTime = end_time.ToBeijingTime(),
-                Sport = sport,
+                Type = sport,
+                Calories = calories?.ToEnergy(EnergyUnit.Calorie),
+                Distance = distance?.ToLength(LengthUnit.Meter),
+                Duration = duration?.ToTimeSpan(TimeSpanUnit.Seconds),
 
-                AvgAltitude = Length.FromMeters(avg_altitude),
-                AvgCadence = Frequency.FromCyclesPerMinute(avg_cadence),
-                AvgHeartrate = Frequency.FromBeatsPerMinute(avg_heartrate),
-                AvgSpeed = Speed.FromKilometersPerHour(avg_speed),
+                BeginTime = start_time?.ToBeijingTime(),
+                FinishTime = end_time?.ToBeijingTime(),
 
-                MaxAltitude = Length.FromMeters(max_altitude),
-                MaxCadence = Frequency.FromCyclesPerMinute(max_cadence),
-                MaxHeartrate = Frequency.FromBeatsPerMinute(max_heartrate),
-                MaxSpeed = Speed.FromKilometersPerHour(max_speed),
+                Cadence = new CadenceData()
+                {
+                    Avg = avg_cadence?.ToFrequency(FrequencyUnit.BeatPerMinute),
+                    Max = max_cadence?.ToFrequency(FrequencyUnit.BeatPerMinute)
+                },
+                Elevation = new ElevationData()
+                {
+                    AvgAltitude = avg_altitude?.ToLength(LengthUnit.Meter),
+                    MaxAltitude = max_altitude?.ToLength(LengthUnit.Meter),
 
-                Calories = Energy.FromKilocalories(calories),
-                Distance = Length.FromMeters(distance),
-                Duration = TimeSpan.FromSeconds(duration)
+                    AvgGrade = avg_grade,
+                    MinGrade = min_grade,
+                    MaxGrade = max_grade,
+
+                    UpslopeDuration = up_duration?.ToTimeSpan(TimeSpanUnit.Seconds),
+                    UpslopeDistance = up_distance?.ToLength(LengthUnit.Meter),
+
+                    DownslopeDuration = down_duration?.ToTimeSpan(TimeSpanUnit.Seconds),
+                    DownslopeDistance = down_distance?.ToLength(LengthUnit.Meter),
+
+                    FlatDuration = flat_duration?.ToTimeSpan(TimeSpanUnit.Seconds),
+                    FlatDistance = flat_distance?.ToLength(LengthUnit.Meter)
+                },
+                Heartrate = new HeartrateData()
+                {
+                    Avg = avg_heartrate?.ToFrequency(FrequencyUnit.BeatPerMinute),
+                    Max = max_heartrate?.ToFrequency(FrequencyUnit.BeatPerMinute)
+                },
+                Power = new PowerData()
+                {
+                    Avg = power_avg?.ToPower(),
+                    Max = power_max?.ToPower(),
+                    Ftp = power_ftp?.ToPower(),
+                    Np =  power_np?.ToPower(),
+
+                    If = power_if,
+                    Vi = power_vi,
+                    Tss = power_tss
+                },
+                Speed = new SpeedData()
+                {
+                    Avg = avg_speed?.ToSpeed(SpeedUnit.KilometerPerHour),
+                    Max = max_speed?.ToSpeed(SpeedUnit.KilometerPerHour)
+                },
+                Temperature = new TemperatureData()
+                {
+                    Min = min_temp?.ToTemperature(),
+                    Max = max_temp?.ToTemperature(),
+                    Avg = avg_temp?.ToTemperature()
+                }
             };
 
-            logger.LogInformation("训练详情获取完成:{info}", ActivityDetail);
-            return ActivityDetail;
+            logger.LogInformation("训练明细获取完成:{info}", data);
+            return data;
         }
         catch (Exception ex)
         {
-            throw new XingZheAPIException("训练详情获取失败", ex);
+            throw new XingZheAPIException("训练明细获取失败", ex);
         }
     }
 
-    public async Task<GpxFile> GetWorkoutGpxFileAsync(long workoutId)
+    public async Task<GpxFile> GetWorkoutTrackAsync(long workoutId)
     {
-        logger.LogTrace("正在获取训 Gpx 文件, WorkoutId:{workoutId}", workoutId);
+        logger.LogTrace("正在获取训轨迹, WorkoutId:{workoutId}", workoutId);
 
         try
         {
@@ -287,21 +400,21 @@ public class XingZheClient(IServiceProvider services,HttpClient client) : IXingZ
             {
                 foreach(var point in track.Points)
                 {
-                    point.Timestamp = new DateTimeOffset(point.Timestamp.DateTime, TimeSpan.FromHours(8));
+                    point.Time = point.Time is null ? null : new DateTimeOffset(point.Time.Value.DateTime, TimeSpan.FromHours(8));
                 }
             }
 
-            logger.LogInformation("取训 Gpx 文件获取完成: {gpx}", gpxFile);
+            logger.LogInformation("训练轨迹获取完成: {gpx}", gpxFile);
             return gpxFile;
         }
         catch(Exception ex)
         {
-            throw new XingZheAPIException("取训 Gpx 文件获取失败", ex);
+            throw new XingZheAPIException("取训轨迹获取失败", ex);
         }
     }
-    public async Task<List<Record>> GetWorkoutStreamAsync(long workoutId)
+    public async Task<List<RecordPoint>> GetWorkoutRecordPointAsync(long workoutId)
     {
-        logger.LogTrace("正在获取训练采样点详情, WorkoutId:{workoutId}", workoutId);
+        logger.LogTrace("正在获取训练记录点信息, WorkoutId:{workoutId}", workoutId);
 
         try
         {
@@ -309,57 +422,66 @@ public class XingZheClient(IServiceProvider services,HttpClient client) : IXingZ
             var root = await client.GetJsonAsync(url);
             var data = root?.SelectToken("data") ?? throw new ArgumentException("响应结果不存在 data 节点");
 
-            List<Record> trackPoints = [];
+            List<RecordPoint> trackPoints = [];
 
-
+            // Unix时间戳 (毫秒Utc+0)
+            var timestamps = data.GetValue<long[]>("timestamp");
+            //位置 (经纬度)
+            var locations = data.GetValue<double[][]>("location");
             // 海拔高度 (米)
             var altitudes = data.GetValue<int[]>("altitude");
 
-            // 踏频 (次/分钟)
-            var cadences = data.GetValue<int[]>("cadence");
             // 心率 (次/分钟)
             var heartrates = data.GetValue<int[]>("heartrate");
             // 温度 (摄氏度℃)
             var temperatures = data.GetValue<int[]>("temperature");
-
             // 距离 (米)
             var distance = data.GetValue<double[]>("distance");
             // 速度 (米/秒)
             var speeds = data.GetValue<double[]>("speed");
-
-            // 左平衡
-            var left_balances = data.GetValue<int[]>("left_balance");
-            // 右平衡
-            var right_balances = data.GetValue<int[]>("right_balance");
-            // 功率
+            //踏频 (次/分钟)
+            var cadences = data.GetValue<double[]>("cadence");
+            //功率 (瓦)
             var powers = data.GetValue<int[]>("power");
+            //左平衡 (百分比)
+            var leftBalances = data.GetValue<int[]>("left_balance");
+            //右平衡 (百分比)
+            var rightBalances = data.GetValue<int[]>("right_balance");
 
-            // Unix时间戳 (毫秒Utc+0)
-            var timestamps = data.GetValue<long[]>("timestamp");
-
-
+            
             int count = timestamps.Length;
             for (int i = 0; i < count; i++)
             {
-                trackPoints.Add(new Record
+                var lon = locations.ElementAtOrDefault(i)?[0];
+                var lat = locations.ElementAtOrDefault(i)?[1];
+
+                if (lon == null || lat == null) continue;
+
+                var point = new RecordPoint
                 {
-                    Timestamps = timestamps.ElementAtOrDefault(i).ToBeijingTime(),
+                    Latitude = lat.Value,
+                    Longitude = lon.Value,
                     Heartrate = Frequency.FromBeatsPerMinute(heartrates.ElementAtOrDefault(i)),
+                    Timestamp = timestamps.ElementAtOrDefault(i).ToBeijingTime(),
                     Altitude = Length.FromMeters(altitudes.ElementAtOrDefault(i)),
                     Distance = Length.FromMeters(distance.ElementAtOrDefault(i)),
                     Cadence = Frequency.FromCyclesPerMinute(cadences.ElementAtOrDefault(i)),
                     Temperature = Temperature.FromDegreesCelsius(temperatures.ElementAtOrDefault(i)),
                     Speed = Speed.FromMetersPerSecond(speeds.ElementAtOrDefault(i)),
-                    Power = Power.FromWatts(powers.ElementAtOrDefault(i))
-                });
+                    Power = Power.FromWatts(powers.ElementAtOrDefault(i)),
+                    LeftBalance = Ratio.FromPercent(leftBalances.ElementAtOrDefault(i)),
+                    RightBalance = Ratio.FromPercent(rightBalances.ElementAtOrDefault(i))
+                };
+
+                trackPoints.Add(point);
             }
 
-            logger.LogInformation("训练采样点详情获取完成, 总数:{count}", trackPoints.Count);
+            logger.LogInformation("训练记录点信息获取完成, 总数:{count}", trackPoints.Count);
             return trackPoints;
         }
         catch (Exception ex)
         {
-            throw new XingZheException("训练采样点详情获取失败", ex);
+            throw new XingZheException("训练记录点信息获取失败", ex);
         }
     }
 

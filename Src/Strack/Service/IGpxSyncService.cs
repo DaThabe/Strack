@@ -1,11 +1,11 @@
-﻿using Common.Model.File.Fit;
+﻿using Common.Extension;
 using Common.Model.File.Gpx;
 using Common.Service.File;
+using IGPSport.Exceptions;
 using IGPSport.Service;
 using Microsoft.Extensions.Logging;
-using System.Xml.Linq;
-using XingZhe.Model.Exception;
-using XingZhe.Model.Workout;
+using XingZhe.Exceptions;
+using XingZhe.Model.User.Workout.Record;
 using XingZhe.Service;
 
 namespace Strack.Service;
@@ -54,7 +54,7 @@ public class GpxSyncService(
                 foreach (var t in cur.Tracks)
                 {
                     //更新轨迹名称
-                    var time = t.Points.FirstOrDefault()?.Timestamp ?? DateTimeOffset.Now;
+                    var time = t.Points.FirstOrDefault()?.Time ?? DateTimeOffset.Now;
                     //yyyyMMdd_HHmmss_行者轨迹
                     t.Name = $"{time.ToOffset(TimeSpan.FromHours(8)):yyyyMMdd_HHmmss}_行者轨迹";
                 }
@@ -77,7 +77,7 @@ public class GpxSyncService(
                 foreach (var t in cur.Tracks)
                 {
                     //更新轨迹名称
-                    var time = t.Points.FirstOrDefault()?.Timestamp ?? DateTimeOffset.Now;
+                    var time = t.Points.FirstOrDefault()?.Time ?? DateTimeOffset.Now;
                     //yyyyMMdd_HHmmss_行者轨迹
                     t.Name = $"{time.ToOffset(TimeSpan.FromHours(8)):yyyyMMdd_HHmmss}_iGPSPORT轨迹";
                 }
@@ -107,18 +107,18 @@ public class GpxSyncService(
 
     public async Task FromIGPSportAsync()
     {
-        var client = iGPSportClientProvider.Sessions.FirstOrDefault()?.Client ?? throw new IGPSportAPIException("iGPSORT 没有可用请求客户端");
+        var client = iGPSportClientProvider.Sessions.FirstOrDefault()?.Client ?? throw new IGSportAPIException("iGPSORT 没有可用请求客户端");
 
-        await foreach (var i in client.GetActivitySummariesAsync())
+        await foreach (var i in client.GetActivitySummaryAsync())
         {
             try
             {
                 if (File.Exists(Path.Combine("IGPSport", $"{i.Id}.gpx"))) continue;
 
                 var fitFile = await client.GetActivityFitFileAsync(i.FitFileUrl);
-                var gpx = ToGpxFile(fitFile);
 
-                await SaveGpxFile("IGPSport", $"{i.Id}.gpx", gpx);
+                var gpx = fitFile.ToGpxFile();
+                await gpxService.SaveAsync(gpx, "IGPSport", $"{i.Id}.gpx");
 
                 logger.LogInformation("iGSPORT Gpx 下载完成:{gpx}", gpx);
                 await Task.Delay(10);
@@ -134,21 +134,21 @@ public class GpxSyncService(
     {
         var client = xingZheClientProvider.Sessions.FirstOrDefault()?.Client ?? throw new XingZheAPIException("行者 没有可用请求客户端");
 
-        await foreach (var i in client.GetWorkoutSummariesAsync())
+        await foreach (var i in client.GetWorkoutSummaryAsync())
         {
             try
             {
                 if (File.Exists(Path.Combine("XingZhe", $"{i.Id}.gpx"))) continue;
 
-                var gpx = await client.GetWorkoutGpxFileAsync(i.Id);
+                var gpx = await client.GetWorkoutTrackAsync(i.Id);
                 var track = gpx.Tracks.FirstOrDefault();
 
                 if (track == null) continue;
 
-                var records = await client.GetWorkoutStreamAsync(i.Id);
+                var records = await client.GetWorkoutRecordPointAsync(i.Id);
                 records.AttachToTrackPoint(track.Points);
 
-                await SaveGpxFile("XingZhe", $"{i.Id}.gpx", gpx);
+                await gpxService.SaveAsync(gpx, "XingZhe", $"{i.Id}.gpx");
 
                 logger.LogInformation("行者Gpx下载完成:{gpx}", gpx);
                 await Task.Delay(10);
@@ -158,52 +158,5 @@ public class GpxSyncService(
                 logger.LogError(ex, "行者 活动数据保存失败");
             }
         }
-    }
-
-
-
-    private async Task SaveGpxFile(string folder, string fileName, GpxFile gpx)
-    {
-        Directory.CreateDirectory(folder);
-        var filePath = Path.Combine(folder, fileName);
-
-        using var fs = File.OpenWrite(filePath);
-        await gpxService.Serialize(gpx).SaveAsync(fs, SaveOptions.None, default);
-    }
-
-    private static GpxFile ToGpxFile(FitFile fit)
-    {
-        GpxFile gpx = new();
-
-        gpx.Metadata.Timestamp = DateTimeOffset.Now;
-        gpx.Metadata.AuthorName = "Strack";
-
-        Track track = new() { Name = "运动轨迹" };
-
-        foreach (var x in fit.Records)
-        {
-            if (x.Timestamp == null) continue;
-            if (x.Longitude == null) continue;
-            if (x.Latitude == null) continue;
-
-            var point = new TrackPoint()
-            {
-                Timestamp = x.Timestamp.Value,
-                Longitude = x.Longitude.Value,
-                Latitude = x.Latitude.Value,
-                Altitude = x.Altitude,
-                Cadence = x.Cadence,
-                Distance = x.Distance,
-                Heartrate = x.Heartrate,
-                Power = x.Power,
-                Speed = x.Speed,
-                Temperature = x.Temperature,
-            };
-
-            track.Points.Add(point);
-        }
-
-        gpx.Tracks.Add(track);
-        return gpx;
     }
 }

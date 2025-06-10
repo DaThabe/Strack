@@ -1,11 +1,10 @@
-﻿using Common;
-using Common.Model.Hosted;
+﻿using Common.Model.Hosted;
 using Common.Service.Setting;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.Net;
+using XingZhe.Exceptions;
 using XingZhe.Model;
-using XingZhe.Model.Exception;
 
 
 namespace XingZhe.Service;

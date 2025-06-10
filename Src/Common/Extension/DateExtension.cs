@@ -1,4 +1,6 @@
-﻿namespace Common.Extension;
+﻿using System.Globalization;
+
+namespace Common.Extension;
 
 public static class DateExtension
 {
@@ -34,6 +36,20 @@ public static class DateExtension
     public static DateTimeOffset ToBeijingTime(this long unixTime)
     {
         return unixTime.ToDateTimeOffset(TimeSpan.FromHours(8));
+    }
+
+
+    /// <summary>
+    /// 转为带时区的时间
+    /// </summary>
+    /// <param name="time"></param>
+    /// <param name="format"></param>
+    /// <param name="offset"></param>
+    /// <returns></returns>
+    public static DateTimeOffset ToDateTimeOffset(this string time, string format, TimeSpan offset)
+    {
+        var dateTime = DateTime.ParseExact(time, format, CultureInfo.InvariantCulture);
+        return new DateTimeOffset(dateTime, offset);
     }
 
 

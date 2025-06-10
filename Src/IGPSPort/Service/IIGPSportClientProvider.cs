@@ -1,11 +1,10 @@
-﻿using Common;
-using Common.Model.Hosted;
+﻿using Common.Model.Hosted;
 using Common.Service.Setting;
+using IGPSport.Exceptions;
 using IGPSport.Model;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.Net.Http.Headers;
-using XingZhe.Model.Exception;
 
 namespace IGPSport.Service;
 
@@ -41,7 +40,7 @@ public class IGPSportClientProvider(
 
     public IIGPSportClient With(Func<Session, bool> matcher)
     {
-        var session = _sessions.Values.FirstOrDefault(matcher) ?? throw new IGPSportException("没有找到匹配的请求客户端");
+        var session = _sessions.Values.FirstOrDefault(matcher) ?? throw new IGSportException("没有找到匹配的请求客户端");
         return session.Client;
     }
     public async Task<IIGPSportClient> SetAuthorizationAsync(string token)

@@ -1,4 +1,4 @@
-﻿namespace XingZhe.Model;
+﻿namespace XingZhe.Model.User;
 
 
 /// <summary>

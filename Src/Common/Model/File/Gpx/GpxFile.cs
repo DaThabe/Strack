@@ -27,8 +27,7 @@ public class GpxFile
     public override string ToString()
     {
         return this.ToStringBuilder()
-            .AddParam(FileInfo, "文件信息")
-            .AddParam(Metadata, "元数据")
+            .AddParam(Metadata.Name, "标题")
             .AddParam(Tracks.Count, "轨迹点数量")
             .ToString();
 

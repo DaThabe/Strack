@@ -1,6 +1,7 @@
 ﻿using Common;
 using IGPSport;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Strack;
 using XingZhe;
 
@@ -19,16 +20,34 @@ internal class Program
 
         await app.StartAsync();
 
+        var logger = app.Services.GetLogger<Program>();
 
+        try
+        {
+            var igs = app.Services.GetIGPSportClientProvider().Sessions.First().Client;
+            var xz = app.Services.GetXingZheClientProvider().Sessions.First().Client;
 
-        var gpxSyncService = app.Services.GetGpxSyncService();
+            var syncService = app.Services.GetSyncService();
 
-        //var xingZheTask = gpxSyncService.FromXingZheAsync();
-        //var igpsportTask = gpxSyncService.FromIGPSportAsync();
+            var igsTask = syncService.FromClient(igs);
+            var xzTask = syncService.FromClient(xz);
 
-        //await Task.WhenAll(xingZheTask, igpsportTask);
+            await Task.WhenAll(igsTask, xzTask);
+        }
+        catch(Exception ex)
+        {
+            logger.LogError(ex, "执行失败");
+        }
+       
 
-        await gpxSyncService.CombineAsync();
+        //await foreach (var i in client.GetWorkoutListAsync())
+        //{
+        //    var data = await client.GetWorkoutDataAsync(i.Id);
+        //    var gpx = await client.GetWorkoutTrackAsync(i.Id);
+        //    var records = await client.GetWorkoutRecordPointAsync(i.Id);
+
+        //    Console.WriteLine("Fuck");
+        //}
 
 
         await app.StopAsync();

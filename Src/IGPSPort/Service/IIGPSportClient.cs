@@ -1,16 +1,16 @@
 ﻿using Common;
 using Common.Extension;
 using Common.Model.File.Fit;
-using Common.Service.File;
-using IGPSport.Model.Activity;
+using IGPSport.Exceptions;
 using IGPSport.Model.User;
-using IGPSport.Service;
+using IGPSport.Model.User.Activity;
+using IGPSport.Model.User.Activity.Detail;
+using IGPSport.Model.User.Activity.Summary;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
-using System.Collections.Generic;
 using System.Globalization;
 using UnitsNet;
-using XingZhe.Model.Exception;
+using UnitsNet.Units;
 
 namespace IGPSport.Service;
 
@@ -23,20 +23,27 @@ public interface IIGPSportClient
     Task<UserInfo> GetUserInfoAsync();
 
     /// <summary>
-    /// 获取活动简要
+    /// 获取活动摘要列表
     /// </summary>>
     /// <param name="pageNo">页码</param>
     /// <param name="pageSize">页面数量 (最大20)</param>
-    /// <param name="sport">运动类型</param>
+    /// <param name="type">活动类型</param>
     /// <returns></returns>
-    Task<List<ActivitySummary>> GetActivitySummariesAsync(int pageNo, int pageSize = 20, ActivityType sport = ActivityType.All);
+    Task<List<ActivitySummary>> GetActivitySummaryAsync(int pageNo, int pageSize = 20, ActivityType type = ActivityType.All);
 
     /// <summary>
-    /// 获取所有活动简要
+    /// 获取活动摘要列表
     /// </summary>
-    /// <param name="sport">运动类型</param>
+    /// <param name="type">活动类型</param>
     /// <returns></returns>
-    IAsyncEnumerable<ActivitySummary> GetActivitySummariesAsync(ActivityType sport = ActivityType.All);
+    IAsyncEnumerable<ActivitySummary> GetActivitySummaryAsync(ActivityType type = ActivityType.All);
+
+    /// <summary>
+    /// 获取活动详情
+    /// </summary>
+    /// <param name="activityId">活动Id</param>
+    /// <returns></returns>
+    Task<ActivityDetail> GetActivityDetail(long activityId);
 
     /// <summary>
     /// 获取活动 Fit 文件
@@ -53,7 +60,7 @@ public class IGPSportClient(
 {
     public async Task<UserInfo> GetUserInfoAsync()
     {
-        _logger.LogTrace("正在获取用户信息");
+        logger.LogTrace("正在获取用户信息");
 
         try
         {
@@ -112,18 +119,18 @@ public class IGPSportClient(
                 FTP = Power.FromWatts(ftp),
             };
 
-            _logger.LogTrace("活动信息获取完成:{info}", result);
+            logger.LogTrace("活动信息获取完成:{info}", result);
             return result;
         }
         catch (Exception ex)
         {
-            throw new IGPSportAPIException("用户信息获取失败", ex);
+            throw new IGSportAPIException("用户信息获取失败", ex);
         }
     }
 
-    public async Task<List<ActivitySummary>> GetActivitySummariesAsync(int pageNo, int pageSize = 20, ActivityType sport = ActivityType.All)
+    public async Task<List<ActivitySummary>> GetActivitySummaryAsync(int pageNo, int pageSize = 20, ActivityType sport = ActivityType.All)
     {
-        _logger.LogTrace("正在获取活动简要, PageNo.:{pageNo}, PageSize:{pageSize}, Sport:{sport}", pageNo, pageSize, sport);
+        logger.LogTrace("正在获取活动简要, PageNo.:{pageNo}, PageSize:{pageSize}, Sport:{sport}", pageNo, pageSize, sport);
 
         try
         {
@@ -135,20 +142,20 @@ public class IGPSportClient(
 
             foreach (var node in rows)
             {
-                var item = ParserItem(node);
+                var item = MapperActivitySummary(node);
                 activitySummaries.Add(item);
             }
 
-            _logger.LogInformation("活动简要获取完成, 数量:{count}", activitySummaries.Count);
+            logger.LogTrace("活动简要获取完成, 数量:{count}", activitySummaries.Count);
             return activitySummaries;
         }
         catch (Exception ex)
         {
-            throw new IGPSportAPIException("活动简要获取失败", ex);
+            throw new IGSportAPIException("活动简要获取失败", ex);
         }
 
         //转换一个元素
-        ActivitySummary ParserItem(JToken node)
+        static ActivitySummary MapperActivitySummary(JToken node)
         {
             //训练Id
             var id = node.GetValue<long>("rideId");
@@ -183,26 +190,43 @@ public class IGPSportClient(
                 AvgSpeed = Speed.FromMetersPerSecond(avgSpeed)
             };
 
-            _logger.LogTrace("活动信息获取完成:{info}", activitySummary);
             return activitySummary;
         }
     }
-    public async IAsyncEnumerable<ActivitySummary> GetActivitySummariesAsync(ActivityType sport =  ActivityType.All)
+    public async IAsyncEnumerable<ActivitySummary> GetActivitySummaryAsync(ActivityType sport =  ActivityType.All)
     {
+        int retryCount = 0;
+
         for (int pageNo = 1, pageSize = 20; true; pageNo++)
         {
             List<ActivitySummary> results = [];
 
             try
             {
-                var summaries = await GetActivitySummariesAsync(pageNo, pageSize, sport);
+                var summaries = await GetActivitySummaryAsync(pageNo, pageSize, sport);
                 if (summaries.Count == 0) break;
 
                 results.AddRange(summaries);
+                await Task.Delay(100);
             }
-            catch(Exception)
+            catch(IGSportAPIException ex) when(ex.InnerException is HttpRequestException httpEx)
             {
-                //请求失败直接返回
+                if (retryCount > 3)
+                {
+                    logger.LogError(ex, "迹驰活动列表获取失败,已重试3次, 结束请求");
+                    break;
+                }
+
+                logger.LogError(ex, "迹驰活动列表请求失败:{code}, 将在1秒后重新请求", httpEx.StatusCode);
+
+                await Task.Delay(1000);
+                pageNo--;
+                retryCount++;
+
+                continue;
+            }
+            catch (IGSportAPIException)
+            {
                 break;
             }
 
@@ -210,6 +234,189 @@ public class IGPSportClient(
         }
 
         yield break;
+    }
+
+    public async Task<ActivityDetail> GetActivityDetail(long activityId)
+    {
+        logger.LogTrace("正在获取迹驰活动数据, ActivityId:{activityId}", activityId);
+
+        try
+        {
+            var url = BuildActivityDataUrl(activityId);
+            var root = await client.GetJsonAsync(url);
+            var data = root.SelectToken("data") ?? throw new ArgumentException("响应结果不存在 data 节点");
+
+            //Id
+            var id = data.GetValue<int>("rideId");
+            //运动类型
+            var sport = data.GetValue<ActivityType>("label");
+
+            //标题
+            var title = data.GetValue<string?>("title");
+
+            //开始时间
+            var startTime = data.GetValueOrDefault<string>("startTime")?.ToDateTimeOffset("yyyy-MM-dd HH:mm:ss", TimeSpan.FromHours(8));
+            //结束时间
+            var endTime = data.GetValueOrDefault<string>("endTime")?.ToDateTimeOffset("yyyy-MM-dd HH:mm:ss", TimeSpan.FromHours(8));
+
+            //卡路里 (千卡)
+            var calories = data.GetValueOrDefault<int?>("calorie");
+            //总距离 (米)
+            var distance = data.GetValueOrDefault<int?>("rideDistance");
+            //总时间 (秒)
+            var duration = data.GetValueOrDefault<int?>("totalTime");
+
+
+            //海拔 (米)
+            var avgAltitude = data.GetValueOrDefault<int?>("avgAltitude");
+            var minAltitude = data.GetValueOrDefault<int?>("minAltitude");
+            var maxAltitude = data.GetValueOrDefault<int?>("maxAltitude");
+
+            //踏频  (次/分钟)
+            var avgCad = data.GetValueOrDefault<int?>("avgCad");
+            var maxCad = data.GetValueOrDefault<int?>("maxCad");
+
+            //上坡距离 (米)
+            var upslopeDistance = data.GetValueOrDefault<int?>("upslopeDistance");
+            //下坡距离 (米)
+            var downslopeDistance = data.GetValueOrDefault<int?>("downslopeDistance");
+
+            //总上升高度 (米)
+            var totalAscent = data.GetValueOrDefault<int?>("totalAscent");
+            //总下降高度 (米)
+            var totalDescent = data.GetValueOrDefault<int?>("totalDescent");
+
+            //最大爬升坡度 (百分比)
+            var upslopeMaxGrade = data.GetValueOrDefault<double?>("upslopeMaxGrade");
+            //平均爬升坡度 (百分比)
+            var upslopeAvgGrade = data.GetValueOrDefault<double?>("upslopeAvgGrade");
+
+            //最大下降坡度 (百分比)
+            var downslopeMaxGrade = data.GetValueOrDefault<double?>("downslopeMaxGrade");
+            //平均下坡坡度 (百分比)
+            var downslopeAvgGrade = data.GetValueOrDefault<double?>("downslopeAvgGrade");
+
+            //平均上坡垂直速度
+            var upslopeAvgVerticalSpeed = data.GetValueOrDefault<int?>("upslopeAvgVerticalSpeed");
+            //最大上坡垂直速度
+            var upslopeMaxVerticalSpeed = data.GetValueOrDefault<int?>("upslopeMaxVerticalSpeed");
+
+            //平均上坡垂直速度
+            var downslopeAvgVerticalSpeed = data.GetValueOrDefault<int?>("downslopeAvgVerticalSpeed");
+            //最大上坡垂直速度
+            var downslopeMaxVerticalSpeed = data.GetValueOrDefault<int?>("downslopeMaxVerticalSpeed");
+
+
+            //心率  (次/分钟)
+            var minHrm = data.GetValueOrDefault<int?>("minHrm");
+            var maxHrm = data.GetValueOrDefault<int?>("maxHrm");
+            var avgHrm = data.GetValueOrDefault<int?>("avgHrm");
+
+
+            //功率  (瓦)
+            var avgPower = data.GetValueOrDefault<double?>("avgPower");
+            var maxPower = data.GetValueOrDefault<double?>("maxPower");
+            //正常化功率 (瓦)
+            var pwrNP = data.GetValueOrDefault<double?>("pwrNP");
+            //强度因子
+            var pwrIF = data.GetValueOrDefault<double?>("pwrIF");
+            //训练压力得分
+            var pwrTSS = data.GetValueOrDefault<int?>("pwrTSS");
+
+
+            //速度 (米/秒)
+            var avgSpeed = data.GetValueOrDefault<double?>("avgSpeed");
+            var maxSpeed = data.GetValueOrDefault<double?>("maxSpeed");
+
+
+            //温度 (摄氏度)
+            var avgTemperature = data.GetValueOrDefault<int?>("avgTemperature");
+            var maxTemperature = data.GetValueOrDefault<int?>("maxTemperature");
+
+
+
+            ActivityDetail detail = new()
+            {
+                Id = activityId,
+                Title = title,
+                Type = sport,
+                Calories = calories?.ToEnergy(EnergyUnit.Kilocalorie),
+                Distance = distance?.ToLength(LengthUnit.Meter),
+                Duration = duration?.ToTimeSpan(TimeSpanUnit.Seconds),
+
+                BeginTime = startTime,
+                FinishTime = endTime,
+
+                Cadence = new CadenceData()
+                {
+                    Avg = avgCad?.ToFrequency(FrequencyUnit.BeatPerMinute),
+                    Max = maxCad?.ToFrequency(FrequencyUnit.BeatPerMinute)
+                },
+                Elevation = new ElevationData()
+                {
+                    //海拔
+                    AvgAltitude = avgAltitude?.ToLength(LengthUnit.Meter),
+                    MinAltitude = minAltitude?.ToLength(LengthUnit.Meter),
+                    MaxAltitude = maxAltitude?.ToLength(LengthUnit.Meter),
+
+                    //上升下降高度
+                    AscentHeight = totalAscent?.ToLength( LengthUnit.Meter),
+                    DescentHeight = totalDescent?.ToLength(LengthUnit.Meter),
+
+                    //上升下降距离
+                    UpslopeDistance = upslopeDistance?.ToLength(LengthUnit.Meter),
+                    DownslopeDistance = downslopeAvgGrade?.ToLength(LengthUnit.Meter),
+
+                    //上升速度
+                    AvgAscentSpeed = upslopeAvgVerticalSpeed?.ToSpeed(SpeedUnit.MeterPerHour),
+                    MaxAscentSpeed = upslopeMaxVerticalSpeed?.ToSpeed(SpeedUnit.MeterPerHour),
+
+                    //下降速度
+                    AvgDescentSpeed = downslopeAvgVerticalSpeed?.ToSpeed(SpeedUnit.MeterPerHour),
+                    MaxDescentSpeed = downslopeMaxVerticalSpeed?.ToSpeed(SpeedUnit.MeterPerHour),
+
+                    //下降坡度
+                    AvgDownslopeGrade = downslopeAvgGrade,
+                    MaxDownslopeGrade = downslopeMaxGrade,
+
+                    //上升坡度
+                    AvgUpslopeGrade = upslopeAvgGrade,
+                    MaxUpslopeGrade = downslopeMaxGrade,
+                },
+                Heartrate = new HeartrateData()
+                {
+                    Avg = avgHrm?.ToFrequency(FrequencyUnit.BeatPerMinute),
+                    Max = avgHrm?.ToFrequency(FrequencyUnit.BeatPerMinute),
+                    Min = avgHrm?.ToFrequency(FrequencyUnit.BeatPerMinute)
+                },
+                Power = new PowerData()
+                {
+                    Avg = avgPower?.ToPower(PowerUnit.Watt),
+                    Max = maxPower?.ToPower(PowerUnit.Watt),
+
+                    Np = pwrNP?.ToPower(PowerUnit.Watt),
+                    If = pwrIF,
+                    Tss = pwrTSS
+                },
+                Speed = new SpeedData()
+                {
+                    Avg = avgSpeed?.ToSpeed(SpeedUnit.MeterPerSecond),
+                    Max = maxSpeed?.ToSpeed(SpeedUnit.MeterPerSecond)
+                },
+                Temperature = new TemperatureData()
+                {
+                    Max = maxTemperature?.ToTemperature(),
+                    Avg = maxTemperature?.ToTemperature()
+                }
+            };
+
+            logger.LogInformation("训练数据获取完成:{info}", detail);
+            return detail;
+        }
+        catch (Exception ex)
+        {
+            throw new IGSportAPIException("训练数据获取失败", ex);
+        }
     }
 
     public async Task<FitFile> GetActivityFitFileAsync(string fitFileUrl)
@@ -225,14 +432,12 @@ public class IGPSportClient(
         }
         catch(Exception ex)
         {
-            throw new IGPSportAPIException("Fit文件获取失败", ex);
+            throw new IGSportAPIException("Fit文件获取失败", ex);
         }
     }
 
 
-
-    //日志记录器
-    private ILogger<IGPSportClient> _logger = services.GetLogger<IGPSportClient>();
+    private readonly ILogger<IGPSportClient> logger = services.GetLogger<IGPSportClient>();
 
 
     /// <summary>
@@ -263,7 +468,7 @@ public class IGPSportClient(
     /// </summary>
     /// <param name="activityId"></param>
     /// <returns></returns>
-    private static string BuildActivityDetailUrl(int activityId)
+    private static string BuildActivityDataUrl(long activityId)
     {
         return $"https://prod.zh.igpsport.com/service/web-gateway/web-analyze/activity/queryActivityDetail/{activityId}";
     } 

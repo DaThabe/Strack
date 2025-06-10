@@ -23,76 +23,36 @@ namespace Strack.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<double>("AvgAltitudeMeters")
+                    b.Property<long?>("BeginUnixTimeSeconds")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<double?>("CaloriesKilocalories")
                         .HasColumnType("REAL");
 
-                    b.Property<double>("AvgHeartrateBeatsPerMinute")
+                    b.Property<double?>("DurationSeconds")
                         .HasColumnType("REAL");
 
-                    b.Property<double>("AvgSpeedKilometersPerHour")
-                        .HasColumnType("REAL");
+                    b.Property<long?>("FinishUnixTimeSeconds")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<double>("AvgTemperatureCelsius")
-                        .HasColumnType("REAL");
-
-                    b.Property<DateTime>("BeginTimeUtc")
-                        .HasColumnType("TEXT");
-
-                    b.Property<double>("CaloriesKilocalories")
-                        .HasColumnType("REAL");
-
-                    b.Property<DateTime>("FinishTimeUtc")
-                        .HasColumnType("TEXT");
-
-                    b.Property<double>("MaxAltitudeMeters")
-                        .HasColumnType("REAL");
-
-                    b.Property<double>("MaxBeatsPerMinute")
-                        .HasColumnType("REAL");
-
-                    b.Property<double>("MaxSpeedKilometersPerHour")
-                        .HasColumnType("REAL");
-
-                    b.Property<double>("MaxTemperatureCelsius")
-                        .HasColumnType("REAL");
-
-                    b.Property<double>("MinAltitudeMeters")
-                        .HasColumnType("REAL");
-
-                    b.Property<double>("MinTemperatureCelsius")
-                        .HasColumnType("REAL");
-
-                    b.Property<TimeSpan>("MovingTime")
-                        .HasColumnType("TEXT");
-
-                    b.Property<TimeSpan>("PauseTime")
-                        .HasColumnType("TEXT");
+                    b.Property<int>("Source")
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("Sport")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Title")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<double>("TotalAscentMeters")
+                    b.Property<double?>("TotalDistanceMeters")
                         .HasColumnType("REAL");
-
-                    b.Property<double>("TotalDescentMeters")
-                        .HasColumnType("REAL");
-
-                    b.Property<double>("TotalDistanceMeters")
-                        .HasColumnType("REAL");
-
-                    b.Property<TimeSpan>("TotalTime")
-                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
                     b.ToTable("Activity");
                 });
 
-            modelBuilder.Entity("Strack.Model.Entity.Activity.Data.Cycling.CyclingActivityDataEntity", b =>
+            modelBuilder.Entity("Strack.Model.Entity.Activity.Data.CadenceDataEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -101,125 +61,240 @@ namespace Strack.Migrations
                     b.Property<Guid>("ActivityId")
                         .HasColumnType("TEXT");
 
-                    b.Property<double>("AvgCadenceCyclesPerMinute")
+                    b.Property<double?>("AvgCpm")
                         .HasColumnType("REAL");
 
-                    b.Property<double?>("AvgLeftBalancePercent")
-                        .HasColumnType("REAL");
-
-                    b.Property<double?>("AvgLeftPowerWatts")
-                        .HasColumnType("REAL");
-
-                    b.Property<double>("AvgPowerWatts")
-                        .HasColumnType("REAL");
-
-                    b.Property<double?>("AvgRightBalancePercent")
-                        .HasColumnType("REAL");
-
-                    b.Property<double?>("AvgRightPowerWatts")
-                        .HasColumnType("REAL");
-
-                    b.Property<double>("FunctionalThresholdPowerWatts")
-                        .HasColumnType("REAL");
-
-                    b.Property<double>("IntensityFactor")
-                        .HasColumnType("REAL");
-
-                    b.Property<double>("MaxCadenceCyclesPerMinute")
-                        .HasColumnType("REAL");
-
-                    b.Property<double?>("MaxLeftPowerWatts")
-                        .HasColumnType("REAL");
-
-                    b.Property<double>("MaxPowerWatts")
-                        .HasColumnType("REAL");
-
-                    b.Property<double?>("MaxRightPowerWatts")
-                        .HasColumnType("REAL");
-
-                    b.Property<double>("NormalizedPowerWatts")
-                        .HasColumnType("REAL");
-
-                    b.Property<double>("TotalPowerWatts")
-                        .HasColumnType("REAL");
-
-                    b.Property<double>("TrainingStressScore")
-                        .HasColumnType("REAL");
-
-                    b.Property<double>("VariabilityIndex")
+                    b.Property<double?>("MaxCpm")
                         .HasColumnType("REAL");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ActivityId");
+                    b.HasIndex("ActivityId")
+                        .IsUnique();
 
-                    b.ToTable("ActivityCyclingData");
+                    b.ToTable("ActivityCadence");
                 });
 
-            modelBuilder.Entity("Strack.Model.Entity.Sampling.Data.CyclingSamplingDataEntity", b =>
+            modelBuilder.Entity("Strack.Model.Entity.Activity.Data.ElevationDataEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<double?>("CadenCyclesPerMinute")
-                        .HasColumnType("REAL");
-
-                    b.Property<double?>("CadenceRpm")
-                        .HasColumnType("REAL");
-
-                    b.Property<double?>("LeftPowerPercent")
-                        .HasColumnType("REAL");
-
-                    b.Property<double?>("LeftTorqueNm")
-                        .HasColumnType("REAL");
-
-                    b.Property<double?>("PedalSmoothnessPercent")
-                        .HasColumnType("REAL");
-
-                    b.Property<double?>("PowerWatts")
-                        .HasColumnType("REAL");
-
-                    b.Property<double?>("RightPowerPercent")
-                        .HasColumnType("REAL");
-
-                    b.Property<double?>("RightTorqueNm")
-                        .HasColumnType("REAL");
-
-                    b.Property<Guid>("SamplingId")
+                    b.Property<Guid>("ActivityId")
                         .HasColumnType("TEXT");
 
-                    b.Property<double?>("TorqueEfficiencyPercent")
+                    b.Property<double?>("AscentHeightMeters")
+                        .HasColumnType("REAL");
+
+                    b.Property<double?>("AvgAltitudeMeters")
+                        .HasColumnType("REAL");
+
+                    b.Property<double?>("AvgAscentSpeed")
+                        .HasColumnType("REAL");
+
+                    b.Property<double?>("AvgDescentSpeed")
+                        .HasColumnType("REAL");
+
+                    b.Property<double?>("AvgDownslopeGrade")
+                        .HasColumnType("REAL");
+
+                    b.Property<double?>("AvgGrade")
+                        .HasColumnType("REAL");
+
+                    b.Property<double?>("AvgUpslopeGrade")
+                        .HasColumnType("REAL");
+
+                    b.Property<double?>("DescentHeightMeters")
+                        .HasColumnType("REAL");
+
+                    b.Property<double?>("DownslopeDistanceMeters")
+                        .HasColumnType("REAL");
+
+                    b.Property<double?>("DownslopeDurationSeconds")
+                        .HasColumnType("REAL");
+
+                    b.Property<double?>("FlatDistanceMeters")
+                        .HasColumnType("REAL");
+
+                    b.Property<double?>("FlatDurationSeconds")
+                        .HasColumnType("REAL");
+
+                    b.Property<double?>("MaxAltitudeMeters")
+                        .HasColumnType("REAL");
+
+                    b.Property<double?>("MaxAscentSpeed")
+                        .HasColumnType("REAL");
+
+                    b.Property<double?>("MaxDescentSpeed")
+                        .HasColumnType("REAL");
+
+                    b.Property<double?>("MaxDownslopeGrade")
+                        .HasColumnType("REAL");
+
+                    b.Property<double?>("MaxGrade")
+                        .HasColumnType("REAL");
+
+                    b.Property<double?>("MaxUpslopeGrade")
+                        .HasColumnType("REAL");
+
+                    b.Property<double?>("MinAltitudeMeters")
+                        .HasColumnType("REAL");
+
+                    b.Property<double?>("MinGrade")
+                        .HasColumnType("REAL");
+
+                    b.Property<double?>("UpslopeDistanceMeters")
+                        .HasColumnType("REAL");
+
+                    b.Property<double?>("UpslopeDurationSeconds")
                         .HasColumnType("REAL");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SamplingId")
+                    b.HasIndex("ActivityId")
                         .IsUnique();
 
-                    b.ToTable("SamplingCyclingData");
+                    b.ToTable("ActivityElevation");
                 });
 
-            modelBuilder.Entity("Strack.Model.Entity.Sampling.Data.SourceDataEntity", b =>
+            modelBuilder.Entity("Strack.Model.Entity.Activity.Data.HeartrateDataEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid>("SourceId")
+                    b.Property<Guid>("ActivityId")
                         .HasColumnType("TEXT");
+
+                    b.Property<double?>("AvgBpm")
+                        .HasColumnType("REAL");
+
+                    b.Property<double?>("MaxBpm")
+                        .HasColumnType("REAL");
+
+                    b.Property<double?>("MinBpm")
+                        .HasColumnType("REAL");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SourceId")
+                    b.HasIndex("ActivityId")
                         .IsUnique();
 
-                    b.ToTable("SourceData");
-
-                    b.UseTptMappingStrategy();
+                    b.ToTable("ActivityHeartrate");
                 });
 
-            modelBuilder.Entity("Strack.Model.Entity.Sampling.SamplingEntity", b =>
+            modelBuilder.Entity("Strack.Model.Entity.Activity.Data.PowerDataEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("ActivityId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<double?>("AvgWatts")
+                        .HasColumnType("REAL");
+
+                    b.Property<double?>("FtpWatts")
+                        .HasColumnType("REAL");
+
+                    b.Property<double?>("If")
+                        .HasColumnType("REAL");
+
+                    b.Property<double?>("MaxWatts")
+                        .HasColumnType("REAL");
+
+                    b.Property<double?>("NpWatts")
+                        .HasColumnType("REAL");
+
+                    b.Property<int?>("Tss")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<double?>("Vi")
+                        .HasColumnType("REAL");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActivityId")
+                        .IsUnique();
+
+                    b.ToTable("ActivityPower");
+                });
+
+            modelBuilder.Entity("Strack.Model.Entity.Activity.Data.SpeedDataEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("ActivityId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<double?>("AvgKph")
+                        .HasColumnType("REAL");
+
+                    b.Property<double?>("MaxKph")
+                        .HasColumnType("REAL");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActivityId")
+                        .IsUnique();
+
+                    b.ToTable("ActivitySpeed");
+                });
+
+            modelBuilder.Entity("Strack.Model.Entity.Activity.Data.TemperatureDataEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("ActivityId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<double?>("AvgCelsius")
+                        .HasColumnType("REAL");
+
+                    b.Property<double?>("MaxCelsius")
+                        .HasColumnType("REAL");
+
+                    b.Property<double?>("MinCelsius")
+                        .HasColumnType("REAL");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActivityId")
+                        .IsUnique();
+
+                    b.ToTable("ActivityTemperature");
+                });
+
+            modelBuilder.Entity("Strack.Model.Entity.Activity.Data.TimeDataEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("ActivityId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<double?>("MovingDurationSeconds")
+                        .HasColumnType("REAL");
+
+                    b.Property<double?>("PauseDurationSeconds")
+                        .HasColumnType("REAL");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActivityId")
+                        .IsUnique();
+
+                    b.ToTable("ActivityTime");
+                });
+
+            modelBuilder.Entity("Strack.Model.Entity.Record.RecordEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -234,145 +309,139 @@ namespace Strack.Migrations
                     b.Property<double?>("DistanceMeters")
                         .HasColumnType("REAL");
 
-                    b.Property<int?>("HeartrateBeatPerMinute")
+                    b.Property<int?>("HeartrateBpm")
                         .HasColumnType("INTEGER");
 
-                    b.Property<double>("LatitudeDegrees")
+                    b.Property<double?>("Latitude")
                         .HasColumnType("REAL");
 
-                    b.Property<double>("LongitudeDegrees")
+                    b.Property<double?>("Longitude")
                         .HasColumnType("REAL");
 
-                    b.Property<double?>("SpeedMetersPerSecond")
+                    b.Property<int?>("PowerWatts")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<double?>("SpeedBpm")
                         .HasColumnType("REAL");
 
                     b.Property<double?>("TemperatureCelsius")
                         .HasColumnType("REAL");
 
-                    b.Property<DateTime>("TimestampUTC")
-                        .HasColumnType("TEXT");
+                    b.Property<long?>("UnixTimeSeconds")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ActivityId");
 
-                    b.ToTable("Sampling");
+                    b.ToTable("Record");
                 });
 
-            modelBuilder.Entity("Strack.Model.Entity.Source.SourceEntity", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("ActivityId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ActivityId")
-                        .IsUnique();
-
-                    b.ToTable("Source");
-                });
-
-            modelBuilder.Entity("Strack.Model.Entity.Source.Data.XingzheSourceDataEntity", b =>
-                {
-                    b.HasBaseType("Strack.Model.Entity.Sampling.Data.SourceDataEntity");
-
-                    b.Property<long>("ActivityId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<long>("UserId")
-                        .HasColumnType("INTEGER");
-
-                    b.ToTable("SourceXingZhe");
-                });
-
-            modelBuilder.Entity("Strack.Model.Entity.Activity.Data.Cycling.CyclingActivityDataEntity", b =>
+            modelBuilder.Entity("Strack.Model.Entity.Activity.Data.CadenceDataEntity", b =>
                 {
                     b.HasOne("Strack.Model.Entity.Activity.ActivityEntity", "Activity")
-                        .WithMany()
+                        .WithOne("Cadence")
+                        .HasForeignKey("Strack.Model.Entity.Activity.Data.CadenceDataEntity", "ActivityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Activity");
+                });
+
+            modelBuilder.Entity("Strack.Model.Entity.Activity.Data.ElevationDataEntity", b =>
+                {
+                    b.HasOne("Strack.Model.Entity.Activity.ActivityEntity", "Activity")
+                        .WithOne("Elevation")
+                        .HasForeignKey("Strack.Model.Entity.Activity.Data.ElevationDataEntity", "ActivityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Activity");
+                });
+
+            modelBuilder.Entity("Strack.Model.Entity.Activity.Data.HeartrateDataEntity", b =>
+                {
+                    b.HasOne("Strack.Model.Entity.Activity.ActivityEntity", "Activity")
+                        .WithOne("Heartrate")
+                        .HasForeignKey("Strack.Model.Entity.Activity.Data.HeartrateDataEntity", "ActivityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Activity");
+                });
+
+            modelBuilder.Entity("Strack.Model.Entity.Activity.Data.PowerDataEntity", b =>
+                {
+                    b.HasOne("Strack.Model.Entity.Activity.ActivityEntity", "Activity")
+                        .WithOne("Power")
+                        .HasForeignKey("Strack.Model.Entity.Activity.Data.PowerDataEntity", "ActivityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Activity");
+                });
+
+            modelBuilder.Entity("Strack.Model.Entity.Activity.Data.SpeedDataEntity", b =>
+                {
+                    b.HasOne("Strack.Model.Entity.Activity.ActivityEntity", "Activity")
+                        .WithOne("Speed")
+                        .HasForeignKey("Strack.Model.Entity.Activity.Data.SpeedDataEntity", "ActivityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Activity");
+                });
+
+            modelBuilder.Entity("Strack.Model.Entity.Activity.Data.TemperatureDataEntity", b =>
+                {
+                    b.HasOne("Strack.Model.Entity.Activity.ActivityEntity", "Activity")
+                        .WithOne("Temperature")
+                        .HasForeignKey("Strack.Model.Entity.Activity.Data.TemperatureDataEntity", "ActivityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Activity");
+                });
+
+            modelBuilder.Entity("Strack.Model.Entity.Activity.Data.TimeDataEntity", b =>
+                {
+                    b.HasOne("Strack.Model.Entity.Activity.ActivityEntity", "Activity")
+                        .WithOne("Time")
+                        .HasForeignKey("Strack.Model.Entity.Activity.Data.TimeDataEntity", "ActivityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Activity");
+                });
+
+            modelBuilder.Entity("Strack.Model.Entity.Record.RecordEntity", b =>
+                {
+                    b.HasOne("Strack.Model.Entity.Activity.ActivityEntity", "Activity")
+                        .WithMany("Records")
                         .HasForeignKey("ActivityId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Activity");
-                });
-
-            modelBuilder.Entity("Strack.Model.Entity.Sampling.Data.CyclingSamplingDataEntity", b =>
-                {
-                    b.HasOne("Strack.Model.Entity.Sampling.SamplingEntity", "Sampling")
-                        .WithOne("CyclingData")
-                        .HasForeignKey("Strack.Model.Entity.Sampling.Data.CyclingSamplingDataEntity", "SamplingId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Sampling");
-                });
-
-            modelBuilder.Entity("Strack.Model.Entity.Sampling.Data.SourceDataEntity", b =>
-                {
-                    b.HasOne("Strack.Model.Entity.Source.SourceEntity", "Source")
-                        .WithOne("Data")
-                        .HasForeignKey("Strack.Model.Entity.Sampling.Data.SourceDataEntity", "SourceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Source");
-                });
-
-            modelBuilder.Entity("Strack.Model.Entity.Sampling.SamplingEntity", b =>
-                {
-                    b.HasOne("Strack.Model.Entity.Activity.ActivityEntity", "Activity")
-                        .WithMany("Samplings")
-                        .HasForeignKey("ActivityId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Activity");
-                });
-
-            modelBuilder.Entity("Strack.Model.Entity.Source.SourceEntity", b =>
-                {
-                    b.HasOne("Strack.Model.Entity.Activity.ActivityEntity", "Activity")
-                        .WithOne("Source")
-                        .HasForeignKey("Strack.Model.Entity.Source.SourceEntity", "ActivityId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Activity");
-                });
-
-            modelBuilder.Entity("Strack.Model.Entity.Source.Data.XingzheSourceDataEntity", b =>
-                {
-                    b.HasOne("Strack.Model.Entity.Sampling.Data.SourceDataEntity", null)
-                        .WithOne()
-                        .HasForeignKey("Strack.Model.Entity.Source.Data.XingzheSourceDataEntity", "Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("Strack.Model.Entity.Activity.ActivityEntity", b =>
                 {
-                    b.Navigation("Samplings");
+                    b.Navigation("Cadence");
 
-                    b.Navigation("Source")
-                        .IsRequired();
-                });
+                    b.Navigation("Elevation");
 
-            modelBuilder.Entity("Strack.Model.Entity.Sampling.SamplingEntity", b =>
-                {
-                    b.Navigation("CyclingData");
-                });
+                    b.Navigation("Heartrate");
 
-            modelBuilder.Entity("Strack.Model.Entity.Source.SourceEntity", b =>
-                {
-                    b.Navigation("Data")
-                        .IsRequired();
+                    b.Navigation("Power");
+
+                    b.Navigation("Records");
+
+                    b.Navigation("Speed");
+
+                    b.Navigation("Temperature");
+
+                    b.Navigation("Time");
                 });
 #pragma warning restore 612, 618
         }
