@@ -38,6 +38,10 @@ public static class StaticMethodExtension
     public static Energy ToEnergy(this double value, EnergyUnit unit ) => new(value, unit);
     public static Energy ToEnergy(this int value, EnergyUnit unit) => new(value, unit);
 
+    public static Mass ToMass(this double value, MassUnit unit) => new(value, unit);
+    public static Mass ToMass(this int value, MassUnit unit) => new(value, unit);
+
+
     public static TimeSpan ToTimeSpan(this double value, TimeSpanUnit unit)
     {
         return unit switch

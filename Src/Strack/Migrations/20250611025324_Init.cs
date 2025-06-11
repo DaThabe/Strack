@@ -18,7 +18,6 @@ namespace Strack.Migrations
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
                     Title = table.Column<string>(type: "TEXT", nullable: true),
                     Sport = table.Column<int>(type: "INTEGER", nullable: false),
-                    Source = table.Column<int>(type: "INTEGER", nullable: false),
                     BeginUnixTimeSeconds = table.Column<long>(type: "INTEGER", nullable: true),
                     FinishUnixTimeSeconds = table.Column<long>(type: "INTEGER", nullable: true),
                     DurationSeconds = table.Column<double>(type: "REAL", nullable: true),
@@ -224,6 +223,65 @@ namespace Strack.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "Source",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Type = table.Column<int>(type: "INTEGER", nullable: false),
+                    ActivityId = table.Column<Guid>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Source", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Source_Activity_ActivityId",
+                        column: x => x.ActivityId,
+                        principalTable: "Activity",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "SourceIGPSport",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    UserId = table.Column<long>(type: "INTEGER", nullable: true),
+                    ActivityId = table.Column<long>(type: "INTEGER", nullable: false),
+                    SourceId = table.Column<Guid>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SourceIGPSport", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_SourceIGPSport_Source_SourceId",
+                        column: x => x.SourceId,
+                        principalTable: "Source",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "SourceXingZhe",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    UserId = table.Column<long>(type: "INTEGER", nullable: true),
+                    WorkoutId = table.Column<long>(type: "INTEGER", nullable: false),
+                    SourceId = table.Column<Guid>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SourceXingZhe", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_SourceXingZhe_Source_SourceId",
+                        column: x => x.SourceId,
+                        principalTable: "Source",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_ActivityCadence_ActivityId",
                 table: "ActivityCadence",
@@ -270,6 +328,24 @@ namespace Strack.Migrations
                 name: "IX_Record_ActivityId",
                 table: "Record",
                 column: "ActivityId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Source_ActivityId",
+                table: "Source",
+                column: "ActivityId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SourceIGPSport_SourceId",
+                table: "SourceIGPSport",
+                column: "SourceId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SourceXingZhe_SourceId",
+                table: "SourceXingZhe",
+                column: "SourceId",
+                unique: true);
         }
 
         /// <inheritdoc />
@@ -298,6 +374,15 @@ namespace Strack.Migrations
 
             migrationBuilder.DropTable(
                 name: "Record");
+
+            migrationBuilder.DropTable(
+                name: "SourceIGPSport");
+
+            migrationBuilder.DropTable(
+                name: "SourceXingZhe");
+
+            migrationBuilder.DropTable(
+                name: "Source");
 
             migrationBuilder.DropTable(
                 name: "Activity");

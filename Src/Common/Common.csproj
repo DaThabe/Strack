@@ -9,6 +9,7 @@
 
   <ItemGroup>
 	<PackageReference Include="Dynastream.Fit.Portable.dll" Version="1.0.1" />
+	<PackageReference Include="System.Linq.Async" Version="6.0.1" />
 	<PackageReference Include="UnitsNet" Version="6.0.0-pre014" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 	<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.5" />

@@ -14,7 +14,7 @@ public static class JsonExtension
     /// <returns>目标值</returns>
     /// <exception cref="ArgumentException">路径异常</exception>
     /// <exception cref="InvalidCastException">转换异常</exception>
-    public static T GetValue<T>(this JToken token, string path)
+    public static T GetValue<T>(this JToken token, string path) where T : notnull
     {
         var node = token.SelectToken(path) ?? throw new ArgumentException($"Json路径不存在: {path}", nameof(path));
 

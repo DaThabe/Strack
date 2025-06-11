@@ -1,9 +1,9 @@
-﻿namespace Strack.Model.Entity.Activity;
+﻿namespace Strack.Model.Entity.Source;
 
 /// <summary>
 /// 来源类型
 /// </summary>
-public enum ActivitySourceType
+public enum SourceType
 {
     /// <summary>
     /// 无

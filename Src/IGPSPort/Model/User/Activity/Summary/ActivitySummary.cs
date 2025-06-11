@@ -1,11 +1,12 @@
-﻿using UnitsNet;
+﻿using Common.Model;
+using UnitsNet;
 
 namespace IGPSport.Model.User.Activity.Summary;
 
 /// <summary>
 /// 活动列表元素
 /// </summary>
-public class ActivitySummary
+public class ActivitySummary : IIdentifier<long>
 {
     /// <summary>
     /// Id

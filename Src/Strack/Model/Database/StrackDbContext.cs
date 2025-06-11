@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Strack.Model.Entity.Activity;
+using Strack.Model.Entity.Source.Data;
 
 namespace Strack.Model.Database;
 
@@ -11,6 +12,15 @@ public class StrackDbContext(DbContextOptions<StrackDbContext> options) : DbCont
     /// </summary>
     public DbSet<ActivityEntity> Activities { get; set; }
 
+    /// <summary>
+    /// 行者来源
+    /// </summary>
+    public DbSet<XingZheData> SourceXingZhe { get; set; }
+
+    /// <summary>
+    /// 迹驰来源
+    /// </summary>
+    public DbSet<IGPSportData> SourceIGSPSport { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder builder)

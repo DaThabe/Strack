@@ -5,9 +5,9 @@ using UnitsNet;
 namespace XingZhe.Model.User.Workout.Record;
 
 /// <summary>
-/// 记录点 (时间,经纬度,海拔,速度,距离,踏频,心率,温度,功率)
+/// 记录 (时间,经纬度,海拔,速度,距离,踏频,心率,温度,功率)
 /// </summary>
-public class RecordPoint : IGeoPosition
+public class Record : IGeoPosition
 {
     /// <summary>
     /// 时间
@@ -81,9 +81,9 @@ public static class Fuck
     /// <param name="xingZhePoints"></param>
     /// <param name="gpxPoints"></param>
     /// <exception cref="ArgumentException"></exception>
-    public static void AttachToTrackPoint(this IList<RecordPoint> xingZhePoints, IList<Common.Model.File.Gpx.TrackPoint> gpxPoints)
+    public static void AttachToTrackPoint(this IList<Record> xingZhePoints, IList<Common.Model.File.Gpx.TrackPoint> gpxPoints)
     {
-        Dictionary<DateTimeOffset, RecordPoint> xingZheDict = [];
+        Dictionary<DateTimeOffset, Record> xingZheDict = [];
         foreach (var i in xingZhePoints) xingZheDict[i.Timestamp] = i;
 
         foreach (var i in gpxPoints)

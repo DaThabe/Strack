@@ -247,24 +247,25 @@ public class IGPSportClient(
             var data = root.SelectToken("data") ?? throw new ArgumentException("响应结果不存在 data 节点");
 
             //Id
-            var id = data.GetValue<int>("rideId");
+            var id = data.GetValue<long>("rideId");
+            //用户Id
+            var memberId = data.GetValue<long>("memberId");
             //运动类型
             var sport = data.GetValue<ActivityType>("label");
-
             //标题
-            var title = data.GetValue<string?>("title");
-
+            var title = data.GetValue<string>("title");
             //开始时间
-            var startTime = data.GetValueOrDefault<string>("startTime")?.ToDateTimeOffset("yyyy-MM-dd HH:mm:ss", TimeSpan.FromHours(8));
+            var startTime = data.GetValue<string>("startTime").ToDateTimeOffset("yyyy-MM-dd HH:mm:ss", TimeSpan.FromHours(8));
             //结束时间
-            var endTime = data.GetValueOrDefault<string>("endTime")?.ToDateTimeOffset("yyyy-MM-dd HH:mm:ss", TimeSpan.FromHours(8));
+            var endTime = data.GetValue<string>("endTime").ToDateTimeOffset("yyyy-MM-dd HH:mm:ss", TimeSpan.FromHours(8));
+
 
             //卡路里 (千卡)
             var calories = data.GetValueOrDefault<int?>("calorie");
             //总距离 (米)
             var distance = data.GetValueOrDefault<int?>("rideDistance");
             //总时间 (秒)
-            var duration = data.GetValueOrDefault<int?>("totalTime");
+            var duration = data.GetValue<int>("totalTime");
 
 
             //海拔 (米)
@@ -338,11 +339,12 @@ public class IGPSportClient(
             ActivityDetail detail = new()
             {
                 Id = activityId,
+                UserId = memberId,
                 Title = title,
                 Type = sport,
                 Calories = calories?.ToEnergy(EnergyUnit.Kilocalorie),
                 Distance = distance?.ToLength(LengthUnit.Meter),
-                Duration = duration?.ToTimeSpan(TimeSpanUnit.Seconds),
+                Duration = duration.ToTimeSpan(TimeSpanUnit.Seconds),
 
                 BeginTime = startTime,
                 FinishTime = endTime,

@@ -1,5 +1,6 @@
 ﻿using Strack.Model.Entity.Activity.Data;
 using Strack.Model.Entity.Record;
+using Strack.Model.Entity.Source;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Strack.Model.Entity.Activity;
@@ -22,11 +23,6 @@ public class ActivityEntity : EntityBase
     /// 运动类型
     /// </summary>
     public ActivityType Sport { get; set; } = ActivityType.Other;
-
-    /// <summary>
-    /// 来源
-    /// </summary>
-    public ActivitySourceType Source { get; set; } = ActivitySourceType.None;
 
 
     /// <summary>
@@ -98,6 +94,11 @@ public class ActivityEntity : EntityBase
 
     #endregion
 
+
+    /// <summary>
+    /// 来源
+    /// </summary>
+    public required SourceEntity Source { get; set; }
 
     /// <summary>
     /// 包含的所有记录点

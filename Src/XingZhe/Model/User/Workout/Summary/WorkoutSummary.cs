@@ -1,11 +1,12 @@
-﻿using UnitsNet;
+﻿using Common.Model;
+using UnitsNet;
 
 namespace XingZhe.Model.User.Workout.Summary;
 
 /// <summary>
 /// 训练摘要
 /// </summary>
-public class WorkoutSummary
+public class WorkoutSummary : IIdentifier<long>
 {
     /// <summary>
     /// Id

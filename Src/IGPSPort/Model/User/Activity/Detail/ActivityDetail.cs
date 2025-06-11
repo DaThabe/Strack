@@ -9,14 +9,19 @@ namespace IGPSport.Model.User.Activity.Detail;
 public class ActivityDetail
 {
     /// <summary>
-    /// Id
+    /// 活动Id
     /// </summary>
-    public long Id { get; set; }
+    public required long Id { get; set; }
 
     /// <summary>
     /// 标题
     /// </summary>
-    public string? Title { get; set; }
+    public required string Title { get; set; }
+    
+    /// <summary>
+    /// 用户Id
+    /// </summary>
+    public required long UserId { get; set; }
 
     /// <summary>
     /// 活动类型
@@ -31,12 +36,12 @@ public class ActivityDetail
     /// <summary>
     /// 开始时间
     /// </summary>
-    public DateTimeOffset? BeginTime { get; set; }
+    public DateTimeOffset BeginTime { get; set; }
 
     /// <summary>
     /// 开始时间
     /// </summary>
-    public DateTimeOffset? FinishTime { get; set; }
+    public DateTimeOffset FinishTime { get; set; }
 
     /// <summary>
     /// 总距离
@@ -46,7 +51,7 @@ public class ActivityDetail
     /// <summary>
     /// 总时间
     /// </summary>
-    public TimeSpan? Duration { get; set; }
+    public TimeSpan Duration { get; set; }
 
 
     /// <summary>

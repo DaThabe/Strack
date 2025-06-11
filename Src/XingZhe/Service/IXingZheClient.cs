@@ -64,7 +64,7 @@ public interface IXingZheClient
     /// </summary>
     /// <param name="workoutId">运动记录Id</param>
     /// <returns></returns>
-    Task<List<RecordPoint>> GetWorkoutRecordPointAsync(long workoutId);
+    Task<List<Record>> GetWorkoutRecordAsync(long workoutId);
 }
 
 /// <summary>
@@ -233,24 +233,40 @@ public class XingZheClient(IServiceProvider services, HttpClient client) : IXing
             var url = BuildActivityDetailUrl(workoutId);
             var root = await client.GetJsonAsync(url);
             var workout = root.SelectToken("data.workout") ?? throw new ArgumentException("响应结果不存在 data.workout 节点");
+            var user = root.SelectToken("data.user") ?? throw new ArgumentException("响应结果不存在 data.user 节点");
 
             //标题
-            var title = workout.GetValueOrDefault<string?>("title");
+            var title = workout.GetValue<string>("title");
             //开始时间 (Unix Utc+8)
-            var start_time = workout.GetValueOrDefault<long?>("start_time");
+            var start_time = workout.GetValue<long>("start_time");
             //开始时间 (Unix Utc+8)
-            var end_time = workout.GetValueOrDefault<long?>("end_time");
+            var end_time = workout.GetValue<long>("end_time");
             //训练类型
-            var sport = workout.GetValueOrDefault<WorkoutType?>("sport") ?? WorkoutType.Other;
+            var sport = workout.GetValue<WorkoutType>("sport");
             //卡路里 (卡)
-            var calories = workout.GetValueOrDefault<int?>("calories");
+            var calories = workout.GetValue<int>("calories");
             //总距离 (米)
-            var distance = workout.GetValueOrDefault<int?>("distance");
+            var distance = workout.GetValue<int>("distance");
             //总时间 (秒)
-            var duration = workout.GetValueOrDefault<int?>("duration");
+            var duration = workout.GetValue<int>("duration");
+
+            //用户Id
+            var userId = user.GetValue<long>("userid");
+            //用户名
+            var username = user.GetValue<string>("username");
+            //头像网址
+            var avatarUrl = user.GetValue<string>("avatar");
+            //功率 (瓦)
+            var ftp = user.GetValueOrDefault<int?>("ftp");
+            //阈值心率 (次/分)
+            var lthr = user.GetValueOrDefault<int?>("lthr");
+            //最大心率  (次/分)
+            var max_hr = user.GetValueOrDefault<int?>("max_hr");
+            //体重 (千克)
+            var weight = user.GetValueOrDefault<int?>("weight");
 
 
-            //海拔 (米)
+            //海拔 (米)  没有海拔传感器的数据会返回 65036
             var avg_altitude = workout.GetValueOrDefault<double?>("avg_altitude");
             var max_altitude = workout.GetValueOrDefault<double?>("max_altitude");
 
@@ -316,12 +332,12 @@ public class XingZheClient(IServiceProvider services, HttpClient client) : IXing
                 Id = workoutId,
                 Title = title,
                 Type = sport,
-                Calories = calories?.ToEnergy(EnergyUnit.Calorie),
-                Distance = distance?.ToLength(LengthUnit.Meter),
-                Duration = duration?.ToTimeSpan(TimeSpanUnit.Seconds),
+                Calories = calories.ToEnergy(EnergyUnit.Calorie),
+                Distance = distance.ToLength(LengthUnit.Meter),
+                Duration = duration.ToTimeSpan(TimeSpanUnit.Seconds),
 
-                BeginTime = start_time?.ToBeijingTime(),
-                FinishTime = end_time?.ToBeijingTime(),
+                BeginTime = start_time.ToBeijingTime(),
+                FinishTime = end_time.ToBeijingTime(),
 
                 Cadence = new CadenceData()
                 {
@@ -356,7 +372,7 @@ public class XingZheClient(IServiceProvider services, HttpClient client) : IXing
                     Avg = power_avg?.ToPower(),
                     Max = power_max?.ToPower(),
                     Ftp = power_ftp?.ToPower(),
-                    Np =  power_np?.ToPower(),
+                    Np = power_np?.ToPower(),
 
                     If = power_if,
                     Vi = power_vi,
@@ -372,6 +388,16 @@ public class XingZheClient(IServiceProvider services, HttpClient client) : IXing
                     Min = min_temp?.ToTemperature(),
                     Max = max_temp?.ToTemperature(),
                     Avg = avg_temp?.ToTemperature()
+                },
+                User = new UserData()
+                {
+                    Id = userId,
+                    Name = username,
+                    AvatarUrl = avatarUrl,
+                    Ftp = ftp?.ToPower(PowerUnit.Watt),
+                    LtHr = lthr?.ToFrequency(FrequencyUnit.BeatPerMinute),
+                    MaxHr = max_hr?.ToFrequency(FrequencyUnit.BeatPerMinute),
+                    Weight = weight?.ToMass(MassUnit.Kilogram)
                 }
             };
 
@@ -412,7 +438,7 @@ public class XingZheClient(IServiceProvider services, HttpClient client) : IXing
             throw new XingZheAPIException("取训轨迹获取失败", ex);
         }
     }
-    public async Task<List<RecordPoint>> GetWorkoutRecordPointAsync(long workoutId)
+    public async Task<List<Record>> GetWorkoutRecordAsync(long workoutId)
     {
         logger.LogTrace("正在获取训练记录点信息, WorkoutId:{workoutId}", workoutId);
 
@@ -422,7 +448,7 @@ public class XingZheClient(IServiceProvider services, HttpClient client) : IXing
             var root = await client.GetJsonAsync(url);
             var data = root?.SelectToken("data") ?? throw new ArgumentException("响应结果不存在 data 节点");
 
-            List<RecordPoint> trackPoints = [];
+            List<Record> trackPoints = [];
 
             // Unix时间戳 (毫秒Utc+0)
             var timestamps = data.GetValue<long[]>("timestamp");
@@ -457,7 +483,7 @@ public class XingZheClient(IServiceProvider services, HttpClient client) : IXing
 
                 if (lon == null || lat == null) continue;
 
-                var point = new RecordPoint
+                var point = new Record
                 {
                     Latitude = lat.Value,
                     Longitude = lon.Value,

@@ -1,8 +1,10 @@
 ﻿using Common;
+using Common.Extension;
 using IGPSport;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Strack;
+using Strack.Factory;
 using XingZhe;
 
 internal class Program
@@ -24,15 +26,22 @@ internal class Program
 
         try
         {
-            var igs = app.Services.GetIGPSportClientProvider().Sessions.First().Client;
+            var igp = app.Services.GetIGPSportClientProvider().Sessions.First().Client;
             var xz = app.Services.GetXingZheClientProvider().Sessions.First().Client;
 
             var syncService = app.Services.GetSyncService();
 
-            var igsTask = syncService.FromClient(igs);
-            var xzTask = syncService.FromClient(xz);
 
-            await Task.WhenAll(igsTask, xzTask);
+            var igpTask = syncService.AddRangeAsync(syncService
+                    .GetNotSyncFromIGPSportAsync(igp.GetActivitySummaryAsync())
+                    .SelectAwait(async x => await ActivityEntityFactory.FromIGPSportAsync(igp, x.Id, x.FitFileUrl)));
+
+            var xzTask = syncService.AddRangeAsync(syncService
+                    .GetNotSyncFromXingZheAsync(xz.GetWorkoutSummaryAsync())
+                    .SelectAwait(async x => await ActivityEntityFactory.FromXingZheAsync(xz, x.Id)));
+
+
+            await Task.WhenAll(igpTask, xzTask);
         }
         catch(Exception ex)
         {

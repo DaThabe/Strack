@@ -35,9 +35,6 @@ namespace Strack.Migrations
                     b.Property<long?>("FinishUnixTimeSeconds")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Source")
-                        .HasColumnType("INTEGER");
-
                     b.Property<int>("Sport")
                         .HasColumnType("INTEGER");
 
@@ -337,6 +334,72 @@ namespace Strack.Migrations
                     b.ToTable("Record");
                 });
 
+            modelBuilder.Entity("Strack.Model.Entity.Source.Data.IGPSportData", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("ActivityId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("SourceId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<long?>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SourceId")
+                        .IsUnique();
+
+                    b.ToTable("SourceIGPSport");
+                });
+
+            modelBuilder.Entity("Strack.Model.Entity.Source.Data.XingZheData", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("SourceId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<long?>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("WorkoutId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SourceId")
+                        .IsUnique();
+
+                    b.ToTable("SourceXingZhe");
+                });
+
+            modelBuilder.Entity("Strack.Model.Entity.Source.SourceEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("ActivityId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActivityId")
+                        .IsUnique();
+
+                    b.ToTable("Source");
+                });
+
             modelBuilder.Entity("Strack.Model.Entity.Activity.Data.CadenceDataEntity", b =>
                 {
                     b.HasOne("Strack.Model.Entity.Activity.ActivityEntity", "Activity")
@@ -425,6 +488,39 @@ namespace Strack.Migrations
                     b.Navigation("Activity");
                 });
 
+            modelBuilder.Entity("Strack.Model.Entity.Source.Data.IGPSportData", b =>
+                {
+                    b.HasOne("Strack.Model.Entity.Source.SourceEntity", "Source")
+                        .WithOne("IGPSport")
+                        .HasForeignKey("Strack.Model.Entity.Source.Data.IGPSportData", "SourceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Source");
+                });
+
+            modelBuilder.Entity("Strack.Model.Entity.Source.Data.XingZheData", b =>
+                {
+                    b.HasOne("Strack.Model.Entity.Source.SourceEntity", "Source")
+                        .WithOne("XingZhe")
+                        .HasForeignKey("Strack.Model.Entity.Source.Data.XingZheData", "SourceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Source");
+                });
+
+            modelBuilder.Entity("Strack.Model.Entity.Source.SourceEntity", b =>
+                {
+                    b.HasOne("Strack.Model.Entity.Activity.ActivityEntity", "Activity")
+                        .WithOne("Source")
+                        .HasForeignKey("Strack.Model.Entity.Source.SourceEntity", "ActivityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Activity");
+                });
+
             modelBuilder.Entity("Strack.Model.Entity.Activity.ActivityEntity", b =>
                 {
                     b.Navigation("Cadence");
@@ -437,11 +533,21 @@ namespace Strack.Migrations
 
                     b.Navigation("Records");
 
+                    b.Navigation("Source")
+                        .IsRequired();
+
                     b.Navigation("Speed");
 
                     b.Navigation("Temperature");
 
                     b.Navigation("Time");
+                });
+
+            modelBuilder.Entity("Strack.Model.Entity.Source.SourceEntity", b =>
+                {
+                    b.Navigation("IGPSport");
+
+                    b.Navigation("XingZhe");
                 });
 #pragma warning restore 612, 618
         }

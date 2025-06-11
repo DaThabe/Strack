@@ -145,7 +145,7 @@ public class GpxSyncService(
 
                 if (track == null) continue;
 
-                var records = await client.GetWorkoutRecordPointAsync(i.Id);
+                var records = await client.GetWorkoutRecordAsync(i.Id);
                 records.AttachToTrackPoint(track.Points);
 
                 await gpxService.SaveAsync(gpx, "XingZhe", $"{i.Id}.gpx");

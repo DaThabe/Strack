@@ -21,7 +21,7 @@ public partial class WorkoutDetail
     /// <summary>
     /// 标题
     /// </summary>
-    public string? Title { get; set; }
+    public required string Title { get; set; }
 
     /// <summary>
     /// 消耗热量
@@ -31,25 +31,29 @@ public partial class WorkoutDetail
     /// <summary>
     /// 总距离
     /// </summary>
-    public Length? Distance { get; set; }
+    public required Length Distance { get; set; }
 
     /// <summary>
     /// 总时间
     /// </summary>
-    public TimeSpan? Duration { get; set; }
+    public required TimeSpan Duration { get; set; }
 
 
     /// <summary>
     /// 开始时间
     /// </summary>
-    public DateTimeOffset? BeginTime { get; set; }
+    public required DateTimeOffset BeginTime { get; set; }
 
     /// <summary>
     /// 结束时间
     /// </summary>
-    public DateTimeOffset? FinishTime { get; set; }
+    public required DateTimeOffset FinishTime { get; set; }
 
 
+    /// <summary>
+    /// 用户信息
+    /// </summary>
+    public required UserData User { get; set; }
 
     /// <summary>
     /// 踏频
