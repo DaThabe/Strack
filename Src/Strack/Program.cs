@@ -22,31 +22,31 @@ internal class Program
 
         await app.StartAsync();
 
-        var logger = app.Services.GetLogger<Program>();
+        //var logger = app.Services.GetLogger<Program>();
 
-        try
-        {
-            var igp = app.Services.GetIGPSportClientProvider().Sessions.First().Client;
-            var xz = app.Services.GetXingZheClientProvider().Sessions.First().Client;
+        //try
+        //{
+        //    var igp = app.Services.GetIGPSportClientProvider().Sessions.First().Client;
+        //    var xz = app.Services.GetXingZheClientProvider().Caches.First().Client;
 
-            var syncService = app.Services.GetSyncService();
-
-
-            var igpTask = syncService.AddRangeAsync(syncService
-                    .GetNotSyncFromIGPSportAsync(igp.GetActivitySummaryAsync())
-                    .SelectAwait(async x => await ActivityEntityFactory.FromIGPSportAsync(igp, x.Id, x.FitFileUrl)));
-
-            var xzTask = syncService.AddRangeAsync(syncService
-                    .GetNotSyncFromXingZheAsync(xz.GetWorkoutSummaryAsync())
-                    .SelectAwait(async x => await ActivityEntityFactory.FromXingZheAsync(xz, x.Id)));
+        //    var syncService = app.Services.GetSyncService();
 
 
-            await Task.WhenAll(igpTask, xzTask);
-        }
-        catch(Exception ex)
-        {
-            logger.LogError(ex, "执行失败");
-        }
+        //    var igpTask = syncService.AddRangeAsync(syncService
+        //            .GetNotSyncFromIGPSportAsync(igp.GetActivitySummaryAsync())
+        //            .SelectAwait(async x => await ActivityEntityFactory.FromIGPSportAsync(igp, x.Id, x.FitFileUrl)));
+
+        //    var xzTask = syncService.AddRangeAsync(syncService
+        //            .GetNotSyncFromXingZheAsync(xz.GetWorkoutSummaryAsync())
+        //            .SelectAwait(async x => await ActivityEntityFactory.FromXingZheAsync(xz, x.Id)));
+
+
+        //    await Task.WhenAll(igpTask, xzTask);
+        //}
+        //catch(Exception ex)
+        //{
+        //    logger.LogError(ex, "执行失败");
+        //}
        
 
         //await foreach (var i in client.GetWorkoutListAsync())

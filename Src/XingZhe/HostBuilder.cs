@@ -15,7 +15,7 @@ public static class HostBuilder
         builder.ConfigureServices((context, services) =>
         {
             services.AddSingleton<IXingZheClientProvider, XingZheClientProvider>();
-            services.AddHostedService(x => x.GetRequiredService<IXingZheClientProvider>());
+            services.AddSingleton<IXingZheSetting, XingZheSetting>();
         });
 
         return builder;
@@ -26,4 +26,10 @@ public static class HostBuilder
     /// </summary>
     public static IXingZheClientProvider GetXingZheClientProvider(this IServiceProvider service) =>
         service.GetRequiredService<IXingZheClientProvider>();
+
+    /// <summary>
+    /// 获取行者请配置
+    /// </summary>
+    public static IXingZheSetting GetXingZheSetting(this IServiceProvider service) =>
+        service.GetRequiredService<IXingZheSetting>();
 }

@@ -59,6 +59,7 @@ public partial class App : Application
         {
             _logger.LogError(ex, "启动程序时发生错误");
             MessageBox.Show(ex.ToString(), $"启动失败: {ex.Message}", MessageBoxButton.OK, MessageBoxImage.Error);
+            Shutdown();
         }
     }
 

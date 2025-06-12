@@ -16,7 +16,8 @@ public static class HostBuilder
         {
             //客户端容器
             services.AddSingleton<IIGPSportClientProvider, IGPSportClientProvider>();
-            services.AddHostedService(x => x.GetRequiredService<IIGPSportClientProvider>());
+            //设置
+            services.AddSingleton<IIGPSportSetting, IGPSportSetting>();
         });
 
         return builder;
@@ -27,4 +28,10 @@ public static class HostBuilder
     /// </summary>
     public static IIGPSportClientProvider GetIGPSportClientProvider(this IServiceProvider service) => 
         service.GetRequiredService<IIGPSportClientProvider>();
+
+    /// <summary>
+    /// 获取iGPSPORT设置
+    /// </summary>
+    public static IIGPSportSetting GetIGPSportSetting(this IServiceProvider service) =>
+        service.GetRequiredService<IIGPSportSetting>();
 }

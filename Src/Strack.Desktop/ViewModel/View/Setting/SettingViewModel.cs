@@ -1,11 +1,15 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using Strack.Desktop.Service;
 using Wpf.Ui;
 using Wpf.Ui.Appearance;
 
 namespace Strack.Desktop.ViewModel.View.Setting;
 
 
-public partial class SettingViewModel(IThemeService themeService) : ObservableObject
+public partial class SettingViewModel(
+    IThemeService themeService,
+    IStrackDesktopSetting setting
+    ) : ObservableObject
 {
     /// <summary>
     /// 是否是暗色主题
@@ -23,10 +27,12 @@ public partial class SettingViewModel(IThemeService themeService) : ObservableOb
         if (value)
         {
             themeService.SetTheme(ApplicationTheme.Dark);
+            setting.Theme = ApplicationTheme.Dark;
         }
         else
         {
             themeService.SetTheme(ApplicationTheme.Light);
+            setting.Theme = ApplicationTheme.Light;
         }
     }
 }

@@ -11,12 +11,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Asset\Image\track.png" />
-    <None Remove="Asset\Image\xing_zhe.png" />
-    <None Remove="Asset\logo.ico" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Content Include="Strack.ico" />
   </ItemGroup>
 
@@ -30,10 +24,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Asset\Image\IGPSport.ico" />
     <Resource Include="Asset\Image\track.png" />
-    <Resource Include="Asset\Image\xing_zhe.png" />
-    <Resource Include="Asset\logo.ico">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    <Resource Include="Asset\Image\XingZhe.png" />
+    <Resource Include="Asset\Logo.ico">
     </Resource>
   </ItemGroup>
 
@@ -41,6 +35,10 @@
     <None Update="appsetting.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="UI\View\Account\新文件夹\" />
   </ItemGroup>
 
 </Project>

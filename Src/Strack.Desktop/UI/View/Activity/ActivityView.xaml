@@ -13,13 +13,6 @@
 
     <ItemsControl d:ItemsSource="{d:SampleData ItemCount=9}">
 
-        <ItemsControl.ItemTemplate>
-            <DataTemplate>
-
-                <element:InfoCardView />
-
-            </DataTemplate>
-        </ItemsControl.ItemTemplate>
 
         <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>

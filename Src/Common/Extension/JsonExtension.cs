@@ -13,19 +13,12 @@ public static class JsonExtension
     /// <param name="path">路径</param>
     /// <returns>目标值</returns>
     /// <exception cref="ArgumentException">路径异常</exception>
-    /// <exception cref="InvalidCastException">转换异常</exception>
     public static T GetValue<T>(this JToken token, string path) where T : notnull
     {
-        var node = token.SelectToken(path) ?? throw new ArgumentException($"Json路径不存在: {path}", nameof(path));
+        var json = token?.SelectToken(path);
+        if (json == null) throw new ArgumentException($"Json路径不存在: {path}", nameof(path));
 
-        try
-        {
-            return node.ToObject<T>() ?? throw new InvalidCastException($"无法将 JSON 值（路径：{path}）转换为类型 {typeof(T).Name}，结果为 null");
-        }
-        catch (JsonException ex)
-        {
-            throw new InvalidCastException($"无法将 JSON 值（路径：{path}）转换为类型 {typeof(T).Name}。", ex);
-        }
+        return json.ToObject<T>() ?? throw new InvalidCastException($"无法将 JSON 值（路径：{path}）转换为类型 {typeof(T).Name}，结果为 null");
     }
 
     /// <summary>
@@ -40,7 +33,10 @@ public static class JsonExtension
     {
         try
         {
-            return token.GetValue<T>(path);
+            var json = token?.SelectToken(path);
+            if (json == null) return @default;
+
+            return json.ToObject<T>() ?? @default;
         }
         catch
         {
@@ -59,7 +55,10 @@ public static class JsonExtension
     {
         try
         {
-            return token.GetValue<T>(path);
+            var json = token?.SelectToken(path);
+            if (json == null) return default;
+
+            return json.ToObject<T>();
         }
         catch
         {

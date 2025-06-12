@@ -4,7 +4,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 namespace Strack.Desktop.ViewModel.View.Dashboard.Element;
 
 public partial class DateRangeSelectorViewModel(
-    ISetter<DateRangeSelectorViewModel> setting
     ) : ObservableObject
 {
     /// <summary>

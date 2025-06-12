@@ -17,9 +17,8 @@ public static class HostBuilder
         builder.ConfigureServices((context, services) =>
         {
             //配置
-            services.AddSingleton<ISettingProvider, SettingService>();
-            services.AddHostedService(x => x.GetRequiredService<ISettingProvider>());
-            services.AddSingleton(typeof(ISetter<>), typeof(Setter<>));
+            services.AddSingleton<ISettingService, SettingService>();
+            services.AddHostedService(x => x.GetRequiredService<ISettingService>());
 
             //Fit
             services.AddSingleton<IFitService, FitService>();
@@ -30,15 +29,6 @@ public static class HostBuilder
         return builder;
     }
 
-
-    /// <summary>
-    /// 获取配置
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="service"></param>
-    /// <returns></returns>
-    public static ISetter<T> GetSetting<T>(this IServiceProvider service) =>
-        service.GetRequiredService<ISetter<T>>();
 
     /// <summary>
     /// 获取日志记录器

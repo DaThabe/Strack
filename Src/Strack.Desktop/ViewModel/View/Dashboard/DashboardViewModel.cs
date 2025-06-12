@@ -1,87 +1,109 @@
-﻿using Common.Service.Setting;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Strack.Desktop.ViewModel.View.Dashboard.Layout;
+using Strack.Desktop.Service.Shell;
+using Strack.Desktop.UI.View.Dashboard.User;
+using Strack.Desktop.ViewModel.View.Dashboard.User;
 using System.Collections.ObjectModel;
-using XingZhe.Service;
+using Wpf.Ui;
 
 namespace Strack.Desktop.ViewModel.View.Dashboard;
 
-public partial class DashboardViewModel(ISetter<DashboardViewModel> setter) : ObservableObject
+public partial class DashboardViewModel(IMainShellService mainShellService) : ObservableObject
 {
     /// <summary>
-    /// 是否可以编辑布局
+    /// 当前选中用户
     /// </summary>
     [ObservableProperty]
-    public partial bool CanEditLayout { get; set; }
+    public partial IUserListItem? SelectedUser { get; set; }
 
     /// <summary>
-    /// 布局项集合
+    /// 用户列表
     /// </summary>
     [ObservableProperty]
-    public partial ObservableCollection<LayoutItemViewModel> LayoutItemsSource { get; set; } = [];
-
-
-    [RelayCommand]
-    private void SortToLast(LayoutItemViewModel item)
-    {
-        var index = LayoutItemsSource.IndexOf(item);
-        if (index <= 0) return;
-
-        LayoutItemsSource.RemoveAt(index);
-        LayoutItemsSource.Insert(index - 1, item);
-    }
-
-    [RelayCommand]
-    private void SortToNext(LayoutItemViewModel item)
-    {
-        var index = LayoutItemsSource.IndexOf(item);
-        if (index < 0 || index >= LayoutItemsSource.Count - 1) return;
-
-        LayoutItemsSource.RemoveAt(index);
-        LayoutItemsSource.Insert(index + 1, item);
-    }
-
-
-    partial void OnCanEditLayoutChanged(bool value)
-    {
-        if(value == false)
-        {
-            setter.Set(LayoutItemsSource, nameof(LayoutItemsSource));
-        }
-    }
+    public partial ObservableCollection<IUserListItem> UserList { get; set; }
 
 
 
     [RelayCommand]
-    private void ChangeDockToNull(LayoutItemViewModel item)
+    private void AddUser()
     {
-        item.Dock = null;
+        
     }
 
-    [RelayCommand]
-    private void ChangeDockToLeft(LayoutItemViewModel item)
-    {
-        item.Dock = System.Windows.Controls.Dock.Left;
-    }
 
-    [RelayCommand]
-    private void ChangeDockToRight(LayoutItemViewModel item)
-    {
-        item.Dock = System.Windows.Controls.Dock.Right;
-    }
+    ///// <summary>
+    ///// 是否可以编辑布局
+    ///// </summary>
+    //[ObservableProperty]
+    //public partial bool CanEditLayout { get; set; }
 
-    [RelayCommand]
-    private void ChangeDockToTop(LayoutItemViewModel item)
-    {
-        item.Dock = System.Windows.Controls.Dock.Top;
-    }
+    ///// <summary>
+    ///// 布局项集合
+    ///// </summary>
+    //[ObservableProperty]
+    //public partial ObservableCollection<LayoutItemViewModel> LayoutItemsSource { get; set; } = [];
 
-    [RelayCommand]
-    private void ChangeDockToBottom(LayoutItemViewModel item)
-    {
-        item.Dock = System.Windows.Controls.Dock.Bottom;
-    }
+
+    //[RelayCommand]
+    //private void SortToLast(LayoutItemViewModel item)
+    //{
+    //    var index = LayoutItemsSource.IndexOf(item);
+    //    if (index <= 0) return;
+
+    //    LayoutItemsSource.RemoveAt(index);
+    //    LayoutItemsSource.Insert(index - 1, item);
+    //}
+
+    //[RelayCommand]
+    //private void SortToNext(LayoutItemViewModel item)
+    //{
+    //    var index = LayoutItemsSource.IndexOf(item);
+    //    if (index < 0 || index >= LayoutItemsSource.Count - 1) return;
+
+    //    LayoutItemsSource.RemoveAt(index);
+    //    LayoutItemsSource.Insert(index + 1, item);
+    //}
+
+
+    //partial void OnCanEditLayoutChanged(bool value)
+    //{
+    //    if(value == false)
+    //    {
+    //        //setter.Set(LayoutItemsSource, nameof(LayoutItemsSource));
+    //    }
+    //}
+
+
+
+    //[RelayCommand]
+    //private void ChangeDockToNull(LayoutItemViewModel item)
+    //{
+    //    item.Dock = null;
+    //}
+
+    //[RelayCommand]
+    //private void ChangeDockToLeft(LayoutItemViewModel item)
+    //{
+    //    item.Dock = System.Windows.Controls.Dock.Left;
+    //}
+
+    //[RelayCommand]
+    //private void ChangeDockToRight(LayoutItemViewModel item)
+    //{
+    //    item.Dock = System.Windows.Controls.Dock.Right;
+    //}
+
+    //[RelayCommand]
+    //private void ChangeDockToTop(LayoutItemViewModel item)
+    //{
+    //    item.Dock = System.Windows.Controls.Dock.Top;
+    //}
+
+    //[RelayCommand]
+    //private void ChangeDockToBottom(LayoutItemViewModel item)
+    //{
+    //    item.Dock = System.Windows.Controls.Dock.Bottom;
+    //}
 
 
     ///// <summary>

@@ -24,8 +24,6 @@
                 Stretch="UniformToFill"
                 Stroke="{x:Null}" />
 
-
-
         </ResourceDictionary>
     </Application.Resources>
 

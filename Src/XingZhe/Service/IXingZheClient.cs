@@ -107,7 +107,7 @@ public class XingZheClient(IServiceProvider services, HttpClient client) : IXing
                 Id = id,
                 AvatarUrl = avatarUrl,
                 Birthday = new DateTimeOffset(birthday, TimeSpan.FromHours(8)),
-                Username = username,
+                Name = username,
                 PhoneNumber = phoneNumber,
                 Gender = gender,
                 Height = Length.FromCentimeters(height),

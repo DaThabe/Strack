@@ -39,8 +39,7 @@ public static class HostBuilder
                 services.AddHostedService<MigrateHostedService>();
 
 
-                //Gpx 同步
-                services.AddSingleton<IGpxSyncService, GpxSyncService>();
+                //同步
                 services.AddSingleton<ISyncService, SyncService>();
             });
 
@@ -49,10 +48,6 @@ public static class HostBuilder
 
     public static StrackDbContext GetStrackDbContext(this IServiceProvider service) =>
         service.GetRequiredService<StrackDbContext>();
-
-    public static IGpxSyncService GetGpxSyncService(this IServiceProvider service) =>
-        service.GetRequiredService<IGpxSyncService>();
-
     public static ISyncService GetSyncService(this IServiceProvider service) =>
         service.GetRequiredService<ISyncService>();
 }

@@ -1,0 +1,69 @@
+﻿<UserControl
+    x:Class="Strack.Desktop.UI.View.Account.Card.CardView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:card="clr-namespace:Strack.Desktop.ViewModel.View.Account.Card"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:Strack.Desktop.UI.View.Account.Card"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="clr-namespace:Strack.Desktop.ViewModel.View.Setting"
+    xmlns:wpfui="http://schemas.lepo.co/wpfui/2022/xaml"
+    d:DataContext="{d:DesignInstance Type=card:CardViewModel}"
+    d:Width="500"
+    mc:Ignorable="d">
+
+    <wpfui:CardControl>
+
+        <wpfui:CardControl.Header>
+            <StackPanel Orientation="Horizontal">
+
+                <!--  头像  -->
+                <wpfui:Image
+                    Width="60"
+                    Height="60"
+                    d:Source="/Asset/logo.ico"
+                    CornerRadius="5"
+                    DockPanel.Dock="Left"
+                    Source="{Binding AvatarSource}" />
+
+                <!--  文本  -->
+                <StackPanel
+                    Margin="5,0,0,0"
+                    VerticalAlignment="Center"
+                    DockPanel.Dock="Left">
+
+                    <!--  名称  -->
+                    <wpfui:TextBlock
+                        d:Text="Name"
+                        FontTypography="BodyStrong"
+                        Text="{Binding Name}" />
+                    <!--  Id  -->
+                    <wpfui:TextBlock d:Text="Id" Text="{Binding Id}" />
+
+                </StackPanel>
+
+            </StackPanel>
+        </wpfui:CardControl.Header>
+
+        <!--  功能按钮  -->
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+
+            <wpfui:Button
+                Margin="5"
+                Appearance="Primary"
+                Command="{Binding RefreshCommand}"
+                Icon="{wpfui:SymbolIcon Symbol=ArrowClockwise20}"
+                ToolTip="刷新" />
+
+            <wpfui:Button
+                Margin="5"
+                Appearance="Danger"
+                Command="{Binding DeleteCommand}"
+                Icon="{wpfui:SymbolIcon Symbol=Delete20}"
+                ToolTip="删除" />
+
+        </StackPanel>
+
+    </wpfui:CardControl>
+
+</UserControl>
