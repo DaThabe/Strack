@@ -1,4 +1,5 @@
 ﻿using UnitsNet;
+using XingZhe.Model.User.Workout.Detail.Metrics;
 
 namespace XingZhe.Model.User.Workout.Detail;
 
@@ -29,17 +30,6 @@ public partial class WorkoutDetail
     public Energy? Calories { get; set; }
 
     /// <summary>
-    /// 总距离
-    /// </summary>
-    public required Length Distance { get; set; }
-
-    /// <summary>
-    /// 总时间
-    /// </summary>
-    public required TimeSpan Duration { get; set; }
-
-
-    /// <summary>
     /// 开始时间
     /// </summary>
     public required DateTimeOffset BeginTime { get; set; }
@@ -50,40 +40,48 @@ public partial class WorkoutDetail
     public required DateTimeOffset FinishTime { get; set; }
 
 
-    /// <summary>
-    /// 用户信息
-    /// </summary>
-    public required UserData User { get; set; }
+    
 
+    /// <summary>
+    /// 海拔
+    /// </summary>
+    public AltitudeMetrics? Altitude { get; set; }
     /// <summary>
     /// 踏频
     /// </summary>
-    public CadenceData? Cadence { get; set; }
-
+    public CadenceMetrics? Cadence { get; set; }
     /// <summary>
-    /// 高程
+    /// 距离
     /// </summary>
-    public ElevationData? Elevation { get; set; }
-
+    public DistanceMetrics? Distance { get; set; }
+    /// <summary>
+    /// 时间
+    /// </summary>
+    public DurationMetrics? Duration { get; set; }
     /// <summary>
     /// 心率
     /// </summary>
-    public HeartrateData? Heartrate { get; set; }
-
+    public HeartrateMetrics? Heartrate { get; set; }
     /// <summary>
     /// 功率
     /// </summary>
-    public PowerData? Power { get; set; }
-
+    public PowerMetrics? Power { get; set; }
+    /// <summary>
+    /// 坡度
+    /// </summary>
+    public SlopeMetrics? Slope { get; set; }
     /// <summary>
     /// 速度
     /// </summary>
-    public SpeedData? Speed { get; set; }
-
+    public SpeedMetrics? Speed { get; set; }
     /// <summary>
     /// 温度
     /// </summary>
-    public TemperatureData? Temperature { get; set; }
+    public TemperatureMetrics? Temperature { get; set; }
+    /// <summary>
+    /// 用户信息
+    /// </summary>
+    public required UserMetrics User { get; set; }
 
 
     /// <summary>

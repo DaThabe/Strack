@@ -1,7 +1,7 @@
 ﻿using Common.Model.Hosted;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Strack.Model.Database;
+using Strack.Data;
 
 namespace Strack.Service.Migrate;
 

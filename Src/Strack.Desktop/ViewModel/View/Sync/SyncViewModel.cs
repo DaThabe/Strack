@@ -1,7 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 using Strack.Desktop.ViewModel.View.Sync.Activity;
 using Strack.Desktop.ViewModel.View.Sync.User;
-using Strack.Model.Entity;
+using Strack.Model.Entity.Enum;
 using Strack.Service;
 using System.Collections.ObjectModel;
 using System.Runtime.CompilerServices;
@@ -50,7 +50,7 @@ public partial class SyncViewModel(ISyncService syncService) : ObservableObject
                 IsSynced = false,
                 Time = x.StartTime,
                 Title = x.Title,
-                Source = SourceType.XingZhe,
+                Source = PlatformType.XingZhe,
                 Id = x.Id
             });
 

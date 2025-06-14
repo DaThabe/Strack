@@ -254,6 +254,9 @@ public class IGPSportClient(
             var sport = data.GetValue<ActivityType>("label");
             //标题
             var title = data.GetValue<string>("title");
+            //Fit文件网址
+            var fitUrl = data.GetValue<string>("fitUrl");
+
             //开始时间
             var startTime = data.GetValue<string>("startTime").ToDateTimeOffset("yyyy-MM-dd HH:mm:ss", TimeSpan.FromHours(8));
             //结束时间
@@ -342,56 +345,44 @@ public class IGPSportClient(
                 UserId = memberId,
                 Title = title,
                 Type = sport,
-                Calories = calories?.ToEnergy(EnergyUnit.Kilocalorie),
-                Distance = distance?.ToLength(LengthUnit.Meter),
-                Duration = duration.ToTimeSpan(TimeSpanUnit.Seconds),
-
+                FitUrl = fitUrl,
                 BeginTime = startTime,
                 FinishTime = endTime,
+                Calories = calories?.ToEnergy(EnergyUnit.Kilocalorie),
 
-                Cadence = new CadenceData()
+                Altitude = new()
+                {
+                    Avg = avgAltitude?.ToLength(LengthUnit.Meter),
+                    Min = minAltitude?.ToLength(LengthUnit.Meter),
+                    Max = maxAltitude?.ToLength(LengthUnit.Meter),
+                },
+                Cadence = new()
                 {
                     Avg = avgCad?.ToFrequency(FrequencyUnit.BeatPerMinute),
                     Max = maxCad?.ToFrequency(FrequencyUnit.BeatPerMinute)
                 },
-                Elevation = new ElevationData()
+                Distance = new()
                 {
-                    //海拔
-                    AvgAltitude = avgAltitude?.ToLength(LengthUnit.Meter),
-                    MinAltitude = minAltitude?.ToLength(LengthUnit.Meter),
-                    MaxAltitude = maxAltitude?.ToLength(LengthUnit.Meter),
-
-                    //上升下降高度
-                    AscentHeight = totalAscent?.ToLength( LengthUnit.Meter),
-                    DescentHeight = totalDescent?.ToLength(LengthUnit.Meter),
-
-                    //上升下降距离
-                    UpslopeDistance = upslopeDistance?.ToLength(LengthUnit.Meter),
-                    DownslopeDistance = downslopeAvgGrade?.ToLength(LengthUnit.Meter),
-
-                    //上升速度
-                    AvgAscentSpeed = upslopeAvgVerticalSpeed?.ToSpeed(SpeedUnit.MeterPerHour),
-                    MaxAscentSpeed = upslopeMaxVerticalSpeed?.ToSpeed(SpeedUnit.MeterPerHour),
-
-                    //下降速度
-                    AvgDescentSpeed = downslopeAvgVerticalSpeed?.ToSpeed(SpeedUnit.MeterPerHour),
-                    MaxDescentSpeed = downslopeMaxVerticalSpeed?.ToSpeed(SpeedUnit.MeterPerHour),
-
-                    //下降坡度
-                    AvgDownslopeGrade = downslopeAvgGrade,
-                    MaxDownslopeGrade = downslopeMaxGrade,
-
-                    //上升坡度
-                    AvgUpslopeGrade = upslopeAvgGrade,
-                    MaxUpslopeGrade = downslopeMaxGrade,
+                    Downslope = downslopeAvgGrade?.ToLength(LengthUnit.Meter),
+                    Upslope = upslopeDistance?.ToLength(LengthUnit.Meter),
+                    Total = distance?.ToLength(LengthUnit.Meter)
                 },
-                Heartrate = new HeartrateData()
+                Duration = new()
+                {
+                    Total = duration.ToTimeSpan(TimeSpanUnit.Seconds)
+                },
+                Elevation = new()
+                {
+                    AscentHeight = totalAscent?.ToLength(LengthUnit.Meter),
+                    DescentHeight = totalDescent?.ToLength(LengthUnit.Meter)
+                },
+                Heartrate = new()
                 {
                     Avg = avgHrm?.ToFrequency(FrequencyUnit.BeatPerMinute),
                     Max = avgHrm?.ToFrequency(FrequencyUnit.BeatPerMinute),
                     Min = avgHrm?.ToFrequency(FrequencyUnit.BeatPerMinute)
                 },
-                Power = new PowerData()
+                Power = new()
                 {
                     Avg = avgPower?.ToPower(PowerUnit.Watt),
                     Max = maxPower?.ToPower(PowerUnit.Watt),
@@ -400,12 +391,25 @@ public class IGPSportClient(
                     If = pwrIF,
                     Tss = pwrTSS
                 },
-                Speed = new SpeedData()
+                Slope = new()
+                {
+                    AvgDownslope = downslopeAvgGrade,
+                    AvgUpslope = upslopeAvgGrade,
+                    MaxDownslope = downslopeMaxGrade,
+                    MaxUpslope = upslopeMaxGrade
+                },
+                Speed = new()
                 {
                     Avg = avgSpeed?.ToSpeed(SpeedUnit.MeterPerSecond),
-                    Max = maxSpeed?.ToSpeed(SpeedUnit.MeterPerSecond)
+                    Max = maxSpeed?.ToSpeed(SpeedUnit.MeterPerSecond),
+
+                    AvgAscent = upslopeAvgVerticalSpeed?.ToSpeed(SpeedUnit.MeterPerHour),
+                    AvgDescent = downslopeAvgVerticalSpeed?.ToSpeed(SpeedUnit.MeterPerHour),
+
+                    MaxAscent = upslopeMaxVerticalSpeed?.ToSpeed(SpeedUnit.MeterPerHour),
+                    MaxDescent = downslopeMaxVerticalSpeed?.ToSpeed(SpeedUnit.MeterPerHour),
                 },
-                Temperature = new TemperatureData()
+                Temperature = new()
                 {
                     Max = maxTemperature?.ToTemperature(),
                     Avg = maxTemperature?.ToTemperature()

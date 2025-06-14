@@ -1,5 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using Strack.Model.Entity;
+using Strack.Model.Entity.Enum;
 using UnitsNet;
 
 namespace Strack.Desktop.ViewModel.View.Activity;

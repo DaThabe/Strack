@@ -1,5 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.Input;
-using Strack.Model.Entity;
+using Strack.Model.Entity.Enum;
 using System.Windows.Media.Imaging;
 
 namespace Strack.Desktop.ViewModel.View.Dashboard.User;
@@ -18,7 +18,7 @@ public interface IUserListItem
     /// <summary>
     /// 来源
     /// </summary>
-    SourceType Source { get; set; }
+    PlatformType Source { get; set; }
 
     /// <summary>
     /// 头像

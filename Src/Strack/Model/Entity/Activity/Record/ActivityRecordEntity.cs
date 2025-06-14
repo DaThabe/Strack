@@ -66,5 +66,5 @@ public class ActivityRecordEntity : EntityBase
     /// 活动
     /// </summary>
     [ForeignKey(nameof(ActivityId))]
-    public required ActivityEntity Activity { get; set; }
+    public ActivityEntity Activity { get; set; } = null!;
 }

@@ -1,8 +1,9 @@
-﻿# 设计
+# 设计
 
 ```mermaid
 erDiagram
     Activity ||--|| Source : have
+    Activity ||--|| User : 
     Activity ||--|| Metrics : have
     Activity ||--o{ Record : have
     User ||--o{ Activity : have
@@ -32,15 +33,5 @@ erDiagram
         DateTime Time
         double Lat
         double Lon
-    }
-
-    Metrics  {
-        double MaxSpeedKph
-        double AvgSpeedKph
-
-        double MaxPower
-        int AvgPower
-
-        double 
     }
 ```

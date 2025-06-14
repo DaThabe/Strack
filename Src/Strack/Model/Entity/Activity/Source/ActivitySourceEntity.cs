@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Strack.Model.Entity.Enum;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Strack.Model.Entity.Activity.Source;
@@ -8,25 +8,28 @@ namespace Strack.Model.Entity.Activity.Source;
 /// 活动来源
 /// </summary>
 [Table("ActivitySource")]
-[Index(nameof(Type), nameof(ExternalId), IsUnique = true)]
 public class ActivitySourceEntity : EntityBase
 {
     /// <summary>
-    /// 来源类型
+    /// 来源平台类型
     /// </summary>
-    public required SourceType Type { get; set; }
+    public required PlatformType Platform { get; set; }
 
     /// <summary>
-    /// 外部活动Id
+    /// 外部活动 ID
     /// </summary>
-    public required string ExternalId { get; set; }
+    public required long ExternalId  { get; set; }
+
+    /// <summary>
+    /// 导入时间（Unix 秒）
+    /// </summary>
+    public long? ImportUnixTimeSeconds { get; set; } = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
 
     /// <summary>
     /// 活动Id
     /// </summary>
     public required Guid ActivityId { get; set; }
-
     /// <summary>
     /// 活动
     /// </summary>

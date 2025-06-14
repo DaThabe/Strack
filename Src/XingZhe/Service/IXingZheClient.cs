@@ -12,6 +12,7 @@ using XingZhe.Exceptions;
 using XingZhe.Model.User;
 using XingZhe.Model.User.Workout;
 using XingZhe.Model.User.Workout.Detail;
+using XingZhe.Model.User.Workout.Detail.Metrics;
 using XingZhe.Model.User.Workout.Record;
 using XingZhe.Model.User.Workout.Summary;
 
@@ -333,41 +334,39 @@ public class XingZheClient(IServiceProvider services, HttpClient client) : IXing
                 Title = title,
                 Type = sport,
                 Calories = calories.ToEnergy(EnergyUnit.Calorie),
-                Distance = distance.ToLength(LengthUnit.Meter),
-                Duration = duration.ToTimeSpan(TimeSpanUnit.Seconds),
-
                 BeginTime = start_time.ToBeijingTime(),
                 FinishTime = end_time.ToBeijingTime(),
 
-                Cadence = new CadenceData()
+                Altitude = new()
+                {
+                    Avg = avg_altitude?.ToLength(LengthUnit.Meter),
+                    Max = max_altitude?.ToLength(LengthUnit.Meter),
+                },
+                Cadence = new CadenceMetrics()
                 {
                     Avg = avg_cadence?.ToFrequency(FrequencyUnit.BeatPerMinute),
                     Max = max_cadence?.ToFrequency(FrequencyUnit.BeatPerMinute)
                 },
-                Elevation = new ElevationData()
+                Distance = new()
                 {
-                    AvgAltitude = avg_altitude?.ToLength(LengthUnit.Meter),
-                    MaxAltitude = max_altitude?.ToLength(LengthUnit.Meter),
-
-                    AvgGrade = avg_grade,
-                    MinGrade = min_grade,
-                    MaxGrade = max_grade,
-
-                    UpslopeDuration = up_duration?.ToTimeSpan(TimeSpanUnit.Seconds),
-                    UpslopeDistance = up_distance?.ToLength(LengthUnit.Meter),
-
-                    DownslopeDuration = down_duration?.ToTimeSpan(TimeSpanUnit.Seconds),
-                    DownslopeDistance = down_distance?.ToLength(LengthUnit.Meter),
-
-                    FlatDuration = flat_duration?.ToTimeSpan(TimeSpanUnit.Seconds),
-                    FlatDistance = flat_distance?.ToLength(LengthUnit.Meter)
+                    Total = distance.ToLength(LengthUnit.Meter),
+                    Downslope = down_distance?.ToLength(LengthUnit.Meter),
+                    Upslope = up_distance?.ToLength(LengthUnit.Meter),
+                    Flat = flat_distance?.ToLength(LengthUnit.Meter),
                 },
-                Heartrate = new HeartrateData()
+                Duration = new DurationMetrics()
+                {
+                    Total = duration.ToTimeSpan(TimeSpanUnit.Seconds),
+                    Downslope = down_duration?.ToTimeSpan(TimeSpanUnit.Seconds),
+                    Upslope = up_duration?.ToTimeSpan(TimeSpanUnit.Seconds),
+                    Flat = flat_duration?.ToTimeSpan(TimeSpanUnit.Seconds),
+                },
+                Heartrate = new HeartrateMetrics()
                 {
                     Avg = avg_heartrate?.ToFrequency(FrequencyUnit.BeatPerMinute),
                     Max = max_heartrate?.ToFrequency(FrequencyUnit.BeatPerMinute)
                 },
-                Power = new PowerData()
+                Power = new PowerMetrics()
                 {
                     Avg = power_avg?.ToPower(),
                     Max = power_max?.ToPower(),
@@ -378,18 +377,18 @@ public class XingZheClient(IServiceProvider services, HttpClient client) : IXing
                     Vi = power_vi,
                     Tss = power_tss
                 },
-                Speed = new SpeedData()
+                Slope = new SlopeMetrics()
+                {
+                    Avg = avg_grade,
+                    Max = max_grade,
+                    Min = min_grade
+                },
+                Speed = new SpeedMetrics()
                 {
                     Avg = avg_speed?.ToSpeed(SpeedUnit.KilometerPerHour),
                     Max = max_speed?.ToSpeed(SpeedUnit.KilometerPerHour)
                 },
-                Temperature = new TemperatureData()
-                {
-                    Min = min_temp?.ToTemperature(),
-                    Max = max_temp?.ToTemperature(),
-                    Avg = avg_temp?.ToTemperature()
-                },
-                User = new UserData()
+                User = new UserMetrics()
                 {
                     Id = userId,
                     Name = username,
@@ -398,7 +397,13 @@ public class XingZheClient(IServiceProvider services, HttpClient client) : IXing
                     LtHr = lthr?.ToFrequency(FrequencyUnit.BeatPerMinute),
                     MaxHr = max_hr?.ToFrequency(FrequencyUnit.BeatPerMinute),
                     Weight = weight?.ToMass(MassUnit.Kilogram)
-                }
+                },
+                Temperature = new TemperatureMetrics()
+                {
+                    Min = min_temp?.ToTemperature(),
+                    Max = max_temp?.ToTemperature(),
+                    Avg = avg_temp?.ToTemperature()
+                },
             };
 
             logger.LogInformation("训练明细获取完成:{info}", data);

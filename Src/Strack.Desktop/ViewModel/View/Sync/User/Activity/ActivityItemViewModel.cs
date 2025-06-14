@@ -1,5 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.Input;
-using Strack.Model.Entity;
+using Strack.Model.Entity.Enum;
 
 namespace Strack.Desktop.ViewModel.View.Sync.Activity;
 
@@ -15,7 +15,7 @@ public partial class ActivityItemViewModel : ObservableObject
     /// 活动来源
     /// </summary>
     [ObservableProperty]
-    public partial SourceType Source { get; set; }
+    public partial PlatformType Source { get; set; }
 
     /// <summary>
     /// 活动Id

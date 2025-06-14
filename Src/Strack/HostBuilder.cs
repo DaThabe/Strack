@@ -2,10 +2,10 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Strack.Model.Database;
-using Strack.Service;
+using Strack.Data;
+using Strack.Service.Import;
 using Strack.Service.Migrate;
-using Strack.Service.Repository;
+using Strack.Service.Sync;
 
 namespace Strack;
 
@@ -41,11 +41,11 @@ public static class HostBuilder
 
 
                 //同步
-                services.AddSingleton<ISyncService, SyncService>();
+                //services.AddSingleton<ISyncService, SyncService>();
 
                 //储存库
-                services.AddSingleton<IXingZheRepository, XingZheRepository>();
-                services.AddSingleton<IIGPSportRepository, IGPSportRepository>();
+                services.AddSingleton<IActivityImportService, ActivityImportService>();
+                services.AddSingleton<ISyncFactoryService, SyncFactoryService>();
             });
 
         return builder;
@@ -53,8 +53,9 @@ public static class HostBuilder
 
     public static StrackDbContext GetStrackDbContext(this IServiceProvider service) =>
         service.GetRequiredService<StrackDbContext>();
-    public static IXingZheRepository GetXingZheRepository(this IServiceProvider service) =>
-        service.GetRequiredService<IXingZheRepository>();
-    public static IIGPSportRepository GetIGPSportRepository(this IServiceProvider service) =>
-        service.GetRequiredService<IIGPSportRepository>();
+    public static IActivityImportService GetActivityImportService(this IServiceProvider service) =>
+        service.GetRequiredService<IActivityImportService>();
+
+    public static ISyncFactoryService GetSyncFactoryService(this IServiceProvider service) =>
+        service.GetRequiredService<ISyncFactoryService>();
 }

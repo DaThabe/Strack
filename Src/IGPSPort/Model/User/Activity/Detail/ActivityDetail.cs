@@ -1,4 +1,6 @@
-﻿using UnitsNet;
+﻿using IGPSport.Model.User.Activity.Detail.Metrics;
+using UnitsNet;
+using XingZhe.Model.User.Workout.Detail.Metrics;
 
 namespace IGPSport.Model.User.Activity.Detail;
 
@@ -17,11 +19,16 @@ public class ActivityDetail
     /// 标题
     /// </summary>
     public required string Title { get; set; }
-    
+
     /// <summary>
     /// 用户Id
     /// </summary>
     public required long UserId { get; set; }
+
+    /// <summary>
+    /// Fit文件网址
+    /// </summary>
+    public required string FitUrl { get; set; }
 
     /// <summary>
     /// 活动类型
@@ -42,45 +49,47 @@ public class ActivityDetail
     /// 开始时间
     /// </summary>
     public DateTimeOffset FinishTime { get; set; }
+    
+
 
     /// <summary>
-    /// 总距离
+    /// 海拔
     /// </summary>
-    public Length? Distance { get; set; }
-
-    /// <summary>
-    /// 总时间
-    /// </summary>
-    public TimeSpan Duration { get; set; }
-
-
+    public AltitudeMetrics? Altitude { get; set; }
     /// <summary>
     /// 踏频
     /// </summary>
-    public CadenceData? Cadence { get; set; }
-
+    public CadenceMetrics? Cadence { get; set; }
+    /// <summary>
+    /// 距离
+    /// </summary>
+    public DistanceMetrics? Distance { get; set; }
+    /// <summary>
+    /// 时间
+    /// </summary>
+    public DurationMetrics? Duration { get; set; }
     /// <summary>
     /// 高程
     /// </summary>
-    public ElevationData? Elevation { get; set; }
-
+    public ElevationMetrics? Elevation { get; set; }
     /// <summary>
     /// 心率
     /// </summary>
-    public HeartrateData? Heartrate { get; set; }
-
+    public HeartrateMetrics? Heartrate { get; set; }
     /// <summary>
     /// 功率
     /// </summary>
-    public PowerData? Power { get; set; }
-
+    public PowerMetrics? Power { get; set; }
+    /// <summary>
+    /// 坡度
+    /// </summary>
+    public SlopeMetrics? Slope { get; set; }
     /// <summary>
     /// 速度
     /// </summary>
-    public SpeedData? Speed { get; set; }
-
+    public SpeedMetrics? Speed { get; set; }
     /// <summary>
     /// 温度
     /// </summary>
-    public TemperatureData? Temperature { get; set; }
+    public TemperatureMetrics? Temperature { get; set; }
 }
