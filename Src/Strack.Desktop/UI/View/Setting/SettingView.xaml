@@ -6,6 +6,7 @@
     xmlns:ext="clr-namespace:Strack.Desktop.UI.Markup"
     xmlns:local="clr-namespace:Strack.Desktop.UI.View.Setting"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:mdxam="https://github.com/whistyun/MdXaml"
     xmlns:setting="clr-namespace:Strack.Desktop.ViewModel.View.Setting"
     xmlns:wpfui="http://schemas.lepo.co/wpfui/2022/xaml"
     d:DataContext="{d:DesignInstance Type=setting:SettingViewModel}"
@@ -14,10 +15,6 @@
     mc:Ignorable="d">
 
     <StackPanel>
-
-        <wpfui:CardControl Header="暗色主题">
-            <wpfui:ToggleSwitch IsChecked="{Binding IsDarkTheme}" />
-        </wpfui:CardControl>
 
         <TextBlock Margin="0,20,0,5" Text="项目介绍" />
 

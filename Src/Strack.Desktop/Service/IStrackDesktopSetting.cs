@@ -1,5 +1,4 @@
 ﻿using Common.Service.Setting;
-using Wpf.Ui.Appearance;
 
 namespace Strack.Desktop.Service;
 
@@ -12,15 +11,15 @@ public interface IStrackDesktopSetting
     /// <summary>
     /// 程序主题
     /// </summary>
-    ApplicationTheme Theme { get; set; }
+    bool IsDarkTheme { get; set; }
 }
 
 
 public class StrackDesktopSetting(ISettingService setting) : IStrackDesktopSetting
 {
-    public ApplicationTheme Theme
+    public bool IsDarkTheme
     {
-        get => setting.Get<ApplicationTheme?>("ApplicationTheme") ?? ApplicationTheme.Light;
-        set => _ = setting.SetAndSaveAsync("ApplicationTheme", value);
+        get => setting.Get<bool?>("IsDarkTheme") ?? false;
+        set => _ = setting.SetAndSaveAsync("IsDarkTheme", value);
     }
 }

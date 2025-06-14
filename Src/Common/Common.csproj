@@ -13,7 +13,6 @@
 	<PackageReference Include="UnitsNet" Version="6.0.0-pre014" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 	<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.5" />
-	  <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.5" />
   </ItemGroup>
 
 </Project>

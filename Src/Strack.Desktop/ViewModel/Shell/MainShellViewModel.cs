@@ -1,16 +1,16 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using Strack.Desktop.Extension;
 using Strack.Desktop.Model.Shell.Navigation;
 using Strack.Desktop.Service.Shell;
-using Strack.Desktop.ViewModel.Shell.Menu;
 using Strack.Desktop.ViewModel.Shell.Navigation;
 using System.Collections.ObjectModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
+using System.Windows.Navigation;
 using Wpf.Ui;
 using Wpf.Ui.Abstractions.Controls;
+using Wpf.Ui.Controls;
 
 namespace Strack.Desktop.ViewModel.Shell;
 
@@ -18,162 +18,173 @@ namespace Strack.Desktop.ViewModel.Shell;
 public partial class MainShellViewModel(
     IServiceProvider services,
     ILogger<MainShellViewModel> logger,
-    ISnackbarService snackbarService
-    ) : ObservableObject, IMainShellService
+    ISnackbarService snackbarService,
+    INavigationService navigationService
+    ) : ObservableObject
 {
     /// <summary>
-    /// 主窗口标题
+    /// 标题
     /// </summary>
     [ObservableProperty]
     public partial string Title { get; set; } = $"Strack-{typeof(MainShellViewModel).Assembly.GetName().Version}";
-
-
     /// <summary>
-    /// 当前导航元素
+    /// 内容
     /// </summary>
     [ObservableProperty]
-    public partial NavigationItemViewModel? CurrentNavigationItem { get; set; }
-    /// <summary>
-    /// 导航记录
-    /// </summary>
-    [ObservableProperty]
-    public partial ObservableCollection<NavigationItemViewModel> NavigationItems { get; set; } = [];
+    public partial object? Content { get; set; }
 
 
     /// <summary>
-    /// 当前菜单元素
+    /// 导航元素
     /// </summary>
     [ObservableProperty]
-    public partial MenuItemViewModel? SelectedMenuItem { get; set; }
+    public partial ObservableCollection<NavigationViewItem> NavigationItems { get; set; } = [];
+
     /// <summary>
-    /// 菜单
+    /// 页脚导航
     /// </summary>
     [ObservableProperty]
-    public partial ObservableCollection<MenuItemViewModel> MenuItems { get; set; } = [];
-    /// <summary>
-    /// 页脚菜单
-    /// </summary>
-    [ObservableProperty]
-    public partial ObservableCollection<MenuItemViewModel> FooterMenuItems { get; set; } = [];
+    public partial ObservableCollection<NavigationViewItem> FooterNavigationItems { get; set; } = [];
+
+
 
 
     /// <summary>
-    /// 选择菜单元素
+    /// 导航
     /// </summary>
-    /// <param name="value"></param>
-    [RelayCommand]
-    private void OnSelectMenuItem(MenuItemViewModel? value)
+    [ObservableProperty]
+    public partial NavigationViewModel Navigation { get; set; } = new();
+
+
+
+    /// <summary>
+    /// 导航路径
+    /// </summary>
+    [ObservableProperty]
+    public partial ObservableCollection<NavigationItemViewModel> NavigationPaths { get; set; } = [];
+
+    /// <summary>
+    /// 导航元素
+    /// </summary>
+    [ObservableProperty]
+    public partial ObservableCollection<NavigationItemViewModel> NavigationViewModels { get; set; } = [];
+
+    /// <summary>
+    /// 页脚导航
+    /// </summary>
+    [ObservableProperty]
+    public partial ObservableCollection<NavigationItemViewModel> FooterNavigationViewModels { get; set; } = [];
+
+
+
+
+    public void AddNavigate(NavigationItemViewModel item)
     {
-        SelectedMenuItem = value;
+        NavigationViewModels.Add(item);
+    }
+    public bool RemoveNavigate(NavigationItemViewModel item)
+    {
+        return NavigationViewModels.Remove(item);
+    }
+
+    public void AddFooterNavigate(NavigationItemViewModel item)
+    {
+        FooterNavigationViewModels.Add(item);
+    }
+    public bool RemoveFooterNavigate(NavigationItemViewModel item)
+    {
+        return FooterNavigationViewModels.Remove(item);
     }
 
 
+    public async Task<bool> NavigateToAsync(Type targetPageType, NavigationCallback? callback = null)
+    {
+        
 
-    /// <summary>
-    /// 业务容器
-    /// </summary>
-    public IServiceProvider ServiceProvider => services;
+        NavigationItemViewModel[] topNavItems = [.. NavigationViewModels, .. FooterNavigationViewModels];
+        var path = topNavItems.Select(x =>
+        {
+            List<NavigationItemViewModel> path = [];
+            FindItemPath(ref path, x, targetPageType);
+            return path;
 
-    #region --导航--
+        }).Where(x => x.Count != 0).FirstOrDefault();
 
-    IEnumerable<NavigationItemViewModel> IMainShellService.NavigationItems => NavigationItems;
+        if(path == null || path.Count == 0)
+        {
+            snackbarService.ShowError("目标页面不存在于导航");
+            return false;
+        }
 
+        foreach (var i in NavigationPaths) i.ISelected = false;
+        NavigationPaths = [.. path];
+        foreach (var i in NavigationPaths) i.ISelected = true;
+
+        var navItem = NavigationPaths[^1];
+        var pageType = navItem.TargetPageType;
+        Content = services.GetService(pageType);
+
+        _navigationHistory.Push(navItem);
+        return true;
+
+
+        static bool FindItemPath(ref List<NavigationItemViewModel> path, NavigationItemViewModel root, Type targetPageType)
+        {
+            path.Add(root);
+
+            if (root.TargetPageType == targetPageType)
+                return true;
+
+            //foreach (var child in root.ChildPageTypes)
+            //{
+            //    if (FindItemPath(ref path, child, targetPageType)) return true;
+            //}
+
+            path.RemoveAt(path.Count - 1); // 回溯
+            return false;
+        }
+    }
     public async Task<bool> NavigateBackAsync(NavigationCallback? callback = null)
     {
         if(NavigationItems.Count < 2) return false;
 
-        var from = NavigationItems[^1];
-        var to = NavigationItems[^2];
+        var from = NavigationViewModels[^1];
+        var to = NavigationViewModels[^2];
 
         //回调
         if (callback != null && await callback.Invoke(to, from)) return false;
 
-        //删除
-        NavigationItems.Remove(from);
-        await OnNavigatedAwareAsync(to, from);
+        if(_navigationHistory.TryPop(out var result))
+        {
+            await NavigateToAsync(result.TargetPageType, callback);
+        }
 
-        CurrentNavigationItem = to;
         return true;
     }
-    public async Task<bool> NavigateToAsync(NavigationItemViewModel navigationItem, NavigationCallback? callback = null)
-    {
-        var from = NavigationItems.Count > 0 ? NavigationItems[^1] : null;
 
-        var index = NavigationItems.IndexOf(navigationItem);
-        if (index != -1)
-        {
-            var to = NavigationItems[index];
 
-            //回调
-            if (callback != null && await callback.Invoke(to, from)) return false;
 
-            //删除从这里到后面的
-            for (int cur = index + 1; cur < NavigationItems.Count; cur++) NavigationItems.RemoveAt(cur);
-
-            await OnNavigatedAwareAsync(to, from);
-            CurrentNavigationItem = to;
-            return true;
-        }
-        else
-        {
-            var to = navigationItem;
-
-            //回调
-            if (callback != null && await callback.Invoke(to, from)) return false;
-
-            NavigationItems.Add(navigationItem);
-            CurrentNavigationItem = to;
-            return true;
-        }
-    }
-
-   
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private async Task<bool> OnNavigatedAwareAsync(NavigationItemViewModel to, NavigationItemViewModel? from)
+    private async Task<bool> OnNavigatedAwareAsync(object to, object? from)
     {
         try
         {
             //处理视图模型导航通知
-            if (to.Content is FrameworkElement toPage && toPage.DataContext is INavigationAware toNavigationAware) await toNavigationAware.OnNavigatedToAsync();
-            if (from?.Content is FrameworkElement fromPage && fromPage.DataContext is INavigationAware fromNavigationAware) await fromNavigationAware.OnNavigatedFromAsync();
+            if (to is FrameworkElement toPage && toPage.DataContext is INavigationAware toNavigationAware) await toNavigationAware.OnNavigatedToAsync();
+            if (from is FrameworkElement fromPage && fromPage.DataContext is INavigationAware fromNavigationAware) await fromNavigationAware.OnNavigatedFromAsync();
 
             return true;
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             snackbarService.ShowError(ex.Message, "跳转失败");
             return false;
         }
     }
 
-   
-
-    #endregion
-
-    #region --菜单--
-
-    IEnumerable<MenuItemViewModel> IMainShellService.MenuItems => MenuItems;
-    IEnumerable<MenuItemViewModel> IMainShellService.FooterMenuItems => FooterMenuItems;
-
-    public void AddMenu(MenuItemViewModel menuItem)
-    {
-        MenuItems.Add(menuItem);
-    }
-    public bool RemoveMenu(MenuItemViewModel menuItem)
-    {
-        return MenuItems.Remove(menuItem);
-    }
-
-    public void AddFooterMenu(MenuItemViewModel menuItem)
-    {
-        FooterMenuItems.Add(menuItem);
-    }
-    public bool RemoveFooterMenu(MenuItemViewModel menuItem)
-    {
-        return FooterMenuItems.Remove(menuItem);
-    }
-
-    
-    #endregion
+    /// <summary>
+    /// 导航记录
+    /// </summary>
+    public readonly Stack<NavigationItemViewModel> _navigationHistory = [];
 }

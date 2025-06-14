@@ -1,6 +1,7 @@
-﻿using Strack.Model.Entity.Activity.Data;
-using Strack.Model.Entity.Record;
-using Strack.Model.Entity.Source;
+﻿using Strack.Model.Entity.Activity.Extension;
+using Strack.Model.Entity.Activity.Record;
+using Strack.Model.Entity.Activity.Source;
+using Strack.Model.Entity.User;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Strack.Model.Entity.Activity;
@@ -60,48 +61,54 @@ public class ActivityEntity : EntityBase
     /// <summary>
     /// 踏频
     /// </summary>
-    public CadenceDataEntity? Cadence { get; set; }
+    public ActivityCadenceEntity? Cadence { get; set; }
 
     /// <summary>
     /// 坡度数据
     /// </summary>
-    public ElevationDataEntity? Elevation { get; set; }
+    public ActivityElevationEntity? Elevation { get; set; }
 
     /// <summary>
     /// 心率数据
     /// </summary>
-    public HeartrateDataEntity? Heartrate { get; set; }
+    public ActivityHeartrateEntity? Heartrate { get; set; }
 
     /// <summary>
     /// 功率
     /// </summary>
-    public PowerDataEntity? Power { get; set; }
+    public ActivityPowerEntity? Power { get; set; }
 
     /// <summary>
     /// 速度数据
     /// </summary>
-    public SpeedDataEntity? Speed { get; set; }
+    public ActivitySpeedEntity? Speed { get; set; }
 
     /// <summary>
     /// 温度数据
     /// </summary>
-    public TemperatureDataEntity? Temperature { get; set; }
+    public ActivityTemperatureEntity? Temperature { get; set; }
 
     /// <summary>
     /// 时间数据
     /// </summary>
-    public TimeDataEntity? Time { get; set; }
-
-    #endregion
+    public ActivityTimeEntity? Time { get; set; }
 
 
     /// <summary>
     /// 来源
     /// </summary>
-    public required SourceEntity Source { get; set; }
+    public ActivitySourceEntity? Source { get; set; }
+
+    /// <summary>
+    /// 所属用户
+    /// </summary>
+    public UserEntity? User { get; set; }
+
+    #endregion
+
 
     /// <summary>
     /// 包含的所有记录点
     /// </summary>
-    public ICollection<RecordEntity> Records { get; set; } = new HashSet<RecordEntity>();
+    public ICollection<ActivityRecordEntity> Records { get; set; } = new HashSet<ActivityRecordEntity>();
 }

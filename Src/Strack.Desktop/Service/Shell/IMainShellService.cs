@@ -11,16 +11,21 @@ namespace Strack.Desktop.Service.Shell;
 /// <summary>
 /// 主窗口业务
 /// </summary>
-public interface IMainShellService : IInfrastructure
+public interface IMainShellService
 {
     /// <summary>
-    /// 当前导航元素
+    /// 导航路径
     /// </summary>
-    NavigationItemViewModel? CurrentNavigationItem { get; }
+    IEnumerable<NavigationItemViewModel> NavigationPaths { get; }
     /// <summary>
-    /// 导航前进记录
+    /// 导航元素
     /// </summary>
     IEnumerable<NavigationItemViewModel> NavigationItems { get; }
+    /// <summary>
+    /// 页脚导航元素
+    /// </summary>
+    IEnumerable<NavigationItemViewModel> FooterNavigationItems { get; }
+
 
     /// <summary>
     /// 跳转
@@ -28,7 +33,7 @@ public interface IMainShellService : IInfrastructure
     /// <param name="navigationItem"></param>
     /// <param name="dataContext"></param>
     /// <returns></returns>
-    public Task<bool> NavigateToAsync(NavigationItemViewModel navigationItem, NavigationCallback? dataContext = null);
+    public Task<bool> NavigateToAsync(Type targetPageType, NavigationCallback? callback = null);
 
     /// <summary>
     /// 返回到上一个
@@ -37,45 +42,32 @@ public interface IMainShellService : IInfrastructure
     public Task<bool> NavigateBackAsync(NavigationCallback? callback = null);
 
 
-
-    /// <summary>
-    /// 选中的菜单
-    /// </summary>
-    MenuItemViewModel? SelectedMenuItem { get; }
-    /// <summary>
-    /// 菜单
-    /// </summary>
-    IEnumerable<MenuItemViewModel> MenuItems { get; }
-    /// <summary>
-    /// 页脚菜单
-    /// </summary>
-    IEnumerable<MenuItemViewModel> FooterMenuItems { get; }
-
     /// <summary>
     /// 添加菜单
     /// </summary>
-    /// <param name="menuItem"></param>
+    /// <param name="item"></param>
     /// <returns></returns>
-    public void AddMenu(MenuItemViewModel menuItem);
-    /// <summary>
-    /// 删除菜单
-    /// </summary>
-    /// <param name="menuItem"></param>
-    /// <returns></returns>
-    public bool RemoveMenu(MenuItemViewModel menuItem);
-
+    public void AddNavigate(NavigationItemViewModel item);
     /// <summary>
     /// 添加页脚菜单
     /// </summary>
-    /// <param name="menuItem"></param>
+    /// <param name="item"></param>
     /// <returns></returns>
-    public void AddFooterMenu(MenuItemViewModel menuItem);
+    public void AddFooterNavigate(NavigationItemViewModel item);
+
+
+    /// <summary>
+    /// 删除菜单
+    /// </summary>
+    /// <param name="item"></param>
+    /// <returns></returns>
+    public bool RemoveNavigate(NavigationItemViewModel item);
     /// <summary>
     /// 删除页脚菜单
     /// </summary>
-    /// <param name="menuItem"></param>
+    /// <param name="item"></param>
     /// <returns></returns>
-    public bool RemoveFooterMenu(MenuItemViewModel menuItem);
+    public bool RemoveFooterNavigate(NavigationItemViewModel item);
 }
 
 
@@ -85,85 +77,106 @@ public interface IMainShellService : IInfrastructure
 public static class MainShellViewModelExtension
 {
     /// <summary>
-    /// 添加菜单
+    /// 添加导航
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    /// <param name="service"></param>
+    /// <param name="source"></param>
     /// <param name="icon"></param>
     /// <param name="title"></param>
     /// <returns></returns>
-    public static MenuItemViewModel AddMenu<T>(this IMainShellService service, IconElement icon, string title)
+    public static NavigationItemViewModel Add<T>(this ICollection<NavigationItemViewModel> source, SymbolRegular icon, string title)
     {
-        MenuItemViewModel viewModel = new()
-        {
-            Title = title,
-            Icon = icon,
-            TargetPageType = typeof(T)
-        };
-
-        service.AddMenu(viewModel);
-        return viewModel;
-    }
-    /// <summary>
-    /// 添加菜单
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="service"></param>
-    /// <param name="icon"></param>
-    /// <param name="title"></param>
-    /// <returns></returns>
-    public static MenuItemViewModel AddMenu<T>(this IMainShellService service, SymbolRegular icon, string title)
-    {
-        MenuItemViewModel viewModel = new()
+        NavigationItemViewModel viewModel = new()
         {
             Icon = new SymbolIcon(icon),
             Title = title,
             TargetPageType = typeof(T)
         };
 
-        service.AddMenu(viewModel);
+        source.Add(viewModel);
         return viewModel;
     }
 
 
     /// <summary>
-    /// 添加页脚菜单
+    /// 添加导航
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="service"></param>
     /// <param name="icon"></param>
     /// <param name="title"></param>
     /// <returns></returns>
-    public static MenuItemViewModel AddFooterMenu<T>(this IMainShellService service, IconElement icon, string title)
+    public static NavigationItemViewModel AddNavigate<T>(this IMainShellService service, IconElement icon, string title)
     {
-        MenuItemViewModel viewModel = new()
+        NavigationItemViewModel viewModel = new()
         {
             Icon = icon,
             Title = title,
             TargetPageType = typeof(T)
         };
 
-        service.AddFooterMenu(viewModel);
+        service.AddNavigate(viewModel);
         return viewModel;
     }
     /// <summary>
-    /// 添加页脚菜单那
+    /// 添加导航
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="service"></param>
     /// <param name="icon"></param>
     /// <param name="title"></param>
     /// <returns></returns>
-    public static MenuItemViewModel AddFooterMenu<T>(this IMainShellService service, SymbolRegular icon, string title)
+    public static NavigationItemViewModel AddNavigate<T>(this IMainShellService service, SymbolRegular icon, string title)
     {
-        MenuItemViewModel viewModel = new()
+        NavigationItemViewModel viewModel = new()
         {
             Icon = new SymbolIcon(icon),
             Title = title,
             TargetPageType = typeof(T)
         };
 
-        service.AddFooterMenu(viewModel);
+        service.AddNavigate(viewModel);
+        return viewModel;
+    }
+
+    /// <summary>
+    /// 添加页脚导航
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="service"></param>
+    /// <param name="icon"></param>
+    /// <param name="title"></param>
+    /// <returns></returns>
+    public static NavigationItemViewModel AddFooterNavigate<T>(this IMainShellService service, IconElement icon, string title)
+    {
+        NavigationItemViewModel viewModel = new()
+        {
+            Icon = icon,
+            Title = title,
+            TargetPageType = typeof(T)
+        };
+
+        service.AddFooterNavigate(viewModel);
+        return viewModel;
+    }
+    /// <summary>
+    /// 添加页脚导航
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="service"></param>
+    /// <param name="icon"></param>
+    /// <param name="title"></param>
+    /// <returns></returns>
+    public static NavigationItemViewModel AddFooterNavigate<T>(this IMainShellService service, SymbolRegular icon, string title)
+    {
+        NavigationItemViewModel viewModel = new()
+        {
+            Icon = new SymbolIcon(icon),
+            Title = title,
+            TargetPageType = typeof(T)
+        };
+
+        service.AddFooterNavigate(viewModel);
         return viewModel;
     }
 }

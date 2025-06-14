@@ -24,7 +24,7 @@ public partial class DashboardView : INavigableView<DashboardViewModel>
             {
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    Test.IsActive = !Test.IsActive;
+                    Test?.IsActive = Test?.IsActive ?? false;
                 });
 
                 await Task.Delay(500);

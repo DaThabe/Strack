@@ -1,30 +1,23 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using FluentFrame.Service.Navigation;
+using FluentFrame.UI.Shell;
+using FluentFrame.ViewModel.Shell;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Strack.Desktop.Service;
-using Strack.Desktop.Service.Shell;
 using Strack.Desktop.UI.Shell.Main;
-using Strack.Desktop.UI.View.Account;
-using Strack.Desktop.UI.View.Activity;
-using Strack.Desktop.UI.View.Dashboard;
-using Strack.Desktop.UI.View.Dashboard.User;
-using Strack.Desktop.UI.View.Import;
 using Strack.Desktop.UI.View.Setting;
-using Strack.Desktop.UI.View.Track;
+using Strack.Desktop.UI.View.Sync;
 using Strack.Desktop.ViewModel.Shell;
-using Strack.Desktop.ViewModel.Shell.Menu;
-using Strack.Desktop.ViewModel.Shell.Navigation;
-using Strack.Desktop.ViewModel.View.Account;
-using Strack.Desktop.ViewModel.View.Dashboard;
 using Strack.Desktop.ViewModel.View.Setting;
-using Wpf.Ui;
-using Wpf.Ui.Abstractions;
+using Strack.Desktop.ViewModel.View.Sync;
+
 
 namespace Strack.Desktop;
 
 public static class HostBuilder
 {
-    public static IHostBuilder UseStrackDesktop(this IHostBuilder builder, App app)
+    public static IHostBuilder UseStrackDesktop(this IHostBuilder builder)
     {
         builder
             .UseStrack()
@@ -33,44 +26,58 @@ public static class HostBuilder
                 //Hosted
                 services.AddHostedService<HostedService>();
 
-                //提示
-                services.AddSingleton<ISnackbarService, SnackbarService>();
-                //弹窗
-                services.AddSingleton<IContentDialogService, ContentDialogService>();
-                //主题
-                services.AddSingleton<IThemeService, ThemeService>();
                 //设置
                 services.AddSingleton<IStrackDesktopSetting, StrackDesktopSetting>();
 
+                //窗口
+                services.AddSingleton<FluentShell>();
+                services.AddSingleton<FluentShellViewModel>();
+                //导航
+                services.AddSingleton<INavigationService, NavigationService>();
 
-                //程序和窗口
-                services.AddSingleton(app);
-                services.AddSingleton<MainShell>();
-                services.AddSingleton<MainShellViewModel>();
-                services.AddSingleton<IMainShellService>(x => x.GetRequiredService<MainShellViewModel>());
 
-                //主视图
-                services.AddSingleton<DashboardView>();
-                services.AddTransient<DashboardViewModel>();
-                services.AddTransient<AddUserView>();
-
-                //轨迹视图
-                services.AddSingleton<TrackView>();
-
-                //导入视图
-                services.AddSingleton<ImportView>();
-
-                //账户视图
-                services.AddSingleton<AccountView>();
-                services.AddTransient<AccountViewModel>();
-
-                //活动视图
-                services.AddSingleton<ActivityView>();
-                //services.AddTransient<ActivityViewModel>();
+                //同步页面
+                services.AddTransient<SyncView>();
+                services.AddTransient<SyncViewModel>();
 
                 //设置视图
-                services.AddSingleton<SettingView>();
+                services.AddTransient<SettingView>();
                 services.AddTransient<SettingViewModel>();
+
+                ////提示
+                //services.AddSingleton<ISnackbarService, SnackbarService>();
+                ////弹窗
+                //services.AddSingleton<IContentDialogService, ContentDialogService>();
+                ////主题
+                //services.AddSingleton<IThemeService, ThemeService>();
+                ////导航
+                //services.AddSingleton<INavigationService, NavigationService>();
+                //services.AddSingleton<INavigationViewPageProvider, NavigationViewPageProvider>();
+
+                ////主窗口
+                //services.AddSingleton<MainShell>();
+                //services.AddTransient<MainShellViewModel>();
+
+                ////主视图
+                //services.AddSingleton<DashboardView>();
+                //services.AddTransient<DashboardViewModel>();
+                //services.AddTransient<AddUserView>();
+
+                ////轨迹视图
+                //services.AddSingleton<TrackView>();
+
+                ////导入视图
+                //services.AddSingleton<ImportView>();
+
+                ////账户视图
+                //services.AddSingleton<AccountView>();
+                //services.AddTransient<AccountViewModel>();
+
+                ////活动视图
+                //services.AddSingleton<ActivityView>();
+                ////services.AddTransient<ActivityViewModel>();
+
+
             })
             .ConfigureHostConfiguration(x =>
             {
@@ -88,24 +95,4 @@ public static class HostBuilder
         service.GetRequiredService<MainShell>();
     public static MainShellViewModel GetMainWindowViewModel(this IServiceProvider service) => 
         service.GetRequiredService<MainShellViewModel>();
-    public static ISnackbarService GetISnackbarService(this IServiceProvider service) => 
-        service.GetRequiredService<ISnackbarService>();
-
-    /// <summary>
-    /// 根据菜单导航创建导航元素
-    /// </summary>
-    /// <param name="service"></param>
-    /// <param name="menu"></param>
-    /// <returns></returns>
-    public static NavigationItemViewModel GetNavigationItemViewModel(this IServiceProvider service, MenuItemViewModel menu)
-    {
-        var page = service.GetRequiredService(menu.TargetPageType);
-
-        return new NavigationItemViewModel()
-        {
-            Icon = menu.Icon,
-            Title = menu.Title,
-            Content = page,
-        };
-    }
 }

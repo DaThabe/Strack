@@ -1,5 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.Input;
-using Strack.Model.Entity.Source;
+using Strack.Model.Entity;
 using System.Windows.Media.Imaging;
 
 namespace Strack.Desktop.ViewModel.View.Dashboard.User;

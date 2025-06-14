@@ -1,49 +1,40 @@
 ﻿using Common.Model.Hosted;
+using FluentFrame.Service.Navigation;
+using FluentFrame.Service.Shell;
+using FluentFrame.UI.Shell;
 using Microsoft.Extensions.Logging;
-using Strack.Desktop.Extension;
-using Strack.Desktop.Factory;
-using Strack.Desktop.Service.Shell;
-using Strack.Desktop.UI.Shell.Main;
-using Strack.Desktop.UI.View;
 using Strack.Desktop.UI.View.Account;
-using Strack.Desktop.UI.View.Activity;
 using Strack.Desktop.UI.View.Dashboard;
-using Strack.Desktop.UI.View.Import;
 using Strack.Desktop.UI.View.Setting;
-using Strack.Desktop.UI.View.Track;
-using Strack.Desktop.ViewModel.Shell;
+using Strack.Desktop.UI.View.Sync;
 using System.Windows;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using Wpf.Ui;
 using Wpf.Ui.Controls;
-using XingZhe.Service;
 
 namespace Strack.Desktop.Service;
 
 internal class HostedService(
-    IServiceProvider services,
     ILogger<HostedService> logger,
     App app, 
-    MainShell mainShell,
     IStrackDesktopSetting setting,
-    IThemeService themeService,
-    AccountView accountView,
-    IXingZheSetting xingZheSetting,
-    IXingZheClientProvider xingZheClientProvider,
-    IMainShellService mainShellService
+    IFluentShellService fluentShellService,
+    INavigationService navigationService,
+    FluentShell fluentShell
     ) : OneTimeHostedService
 {
     protected override async Task ExecuteOnceAsync(CancellationToken cancellationToken)
     {
         await Application.Current.Dispatcher.Invoke(async () =>
         {
-            themeService.SetTheme(setting.Theme);
+            fluentShellService.SetSourceProvider(fluentShell.ViewModel);
+            navigationService.SetSourceProvider(fluentShell.ViewModel);
+
+            fluentShellService.IsDarkTheme = setting.IsDarkTheme;
             logger.LogTrace("已设置主题");
 
-            app.MainWindow = mainShell;
-            mainShell.Show();
-            logger.LogInformation("主窗口已显示");
+
+            var menus = fluentShell.ViewModel.NavigationMenus;
+            var footerMenus = fluentShell.ViewModel.NavigationFooterMenus;
+
 
 
             //mainShellService.AddMenu<ActivityView>(SymbolRegular.DataLine20, "活动");
@@ -52,13 +43,14 @@ internal class HostedService(
 
             //mainShellService.AddMenu<MainShell>(SymbolRegular.Bug24, "测试");
 
-            var main = mainShellService.AddMenu<DashboardView>(SymbolRegular.GlanceHorizontal20, "主页");
-            mainShellService.AddMenu<AccountView>(SymbolRegular.People24, "账户");
-            mainShellService.AddFooterMenu<SettingView>(SymbolRegular.Settings24, "设置");
+            //menus.Add(new() { Content = "主页", Icon = new SymbolIcon(SymbolRegular.GlanceHorizontal20), TargetPageType = typeof(DashboardView) });
+            menus.Add(new() { Content = "同步", Icon = new SymbolIcon(SymbolRegular.Cloud24), TargetPageType = typeof(SyncView) });
+            footerMenus.Add(new() { Content = "设置", Icon = new SymbolIcon(SymbolRegular.Settings24), TargetPageType = typeof(SettingView) });
+            
 
-
-            var mainNavigation = services.GetNavigationItemViewModel(main);
-            await mainShellService.NavigateToAsync(mainNavigation);
+            app.MainWindow = fluentShell;
+            app.MainWindow.Show();
+            logger.LogInformation("主窗口已显示");
         });
 
         

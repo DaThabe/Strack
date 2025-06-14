@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Common\Common.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Strack.Desktop", "Strack.Desktop\Strack.Desktop.csproj", "{98F5F088-332B-1B3A-B369-43E61FE42C90}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluentFrame", "FluentFrame\FluentFrame.csproj", "{6EF73AEC-1EED-4CFB-B1BD-CBD761F1F8F7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +43,10 @@ Global
 		{98F5F088-332B-1B3A-B369-43E61FE42C90}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{98F5F088-332B-1B3A-B369-43E61FE42C90}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{98F5F088-332B-1B3A-B369-43E61FE42C90}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6EF73AEC-1EED-4CFB-B1BD-CBD761F1F8F7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6EF73AEC-1EED-4CFB-B1BD-CBD761F1F8F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6EF73AEC-1EED-4CFB-B1BD-CBD761F1F8F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6EF73AEC-1EED-4CFB-B1BD-CBD761F1F8F7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -49,6 +55,7 @@ Global
 		{E62082F2-8B1E-4CA4-867F-F6D1F18EC6DC} = {CF83BC95-C82A-4E3E-AAC8-6BF224850712}
 		{28E7C413-FEC3-4B3D-A0E0-4F83DCFA00CC} = {CF83BC95-C82A-4E3E-AAC8-6BF224850712}
 		{09259852-CD12-4895-BA92-1963999C4E21} = {CF83BC95-C82A-4E3E-AAC8-6BF224850712}
+		{6EF73AEC-1EED-4CFB-B1BD-CBD761F1F8F7} = {CF83BC95-C82A-4E3E-AAC8-6BF224850712}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1A84BFC2-2DAD-463A-8F05-715554AF8B95}

@@ -1,5 +1,9 @@
-﻿using Strack.Desktop.ViewModel.Shell;
+﻿using Strack.Desktop.UI.View.Dashboard;
+using Strack.Desktop.ViewModel.Shell;
+using System.Windows.Controls;
 using Wpf.Ui;
+using Wpf.Ui.Controls;
+using Xceed.Wpf.AvalonDock.Layout;
 
 namespace Strack.Desktop.UI.Shell.Main;
 
@@ -10,6 +14,7 @@ public partial class MainShell
 
     public MainShell(
         ISnackbarService snackbarService,
+        INavigationService navigationService,
         IContentDialogService contentDialogService,
         MainShellViewModel vm
         )
@@ -19,8 +24,18 @@ public partial class MainShell
         InitializeComponent();
         DataContext = vm;
 
-        snackbarService.SetSnackbarPresenter(SnackbarPresenter);
-        contentDialogService.SetDialogHost(DialogHost);
-        //navigationService.SetNavigationControl(NavigationControl);
+        //snackbarService.SetSnackbarPresenter(PART_SnackbarPresenter);
+        contentDialogService.SetDialogHost(PART_ContentDialogContentPresenter);
+        //navigationService.SetNavigationControl(PART_NavigationView);
+        this.navigationService = navigationService;
     }
+
+
+    private void OnSizeChanged(object sender, System.Windows.SizeChangedEventArgs e)
+    {
+ 
+    }
+
+    private Orientation _layoutOrientation = Orientation.Horizontal;
+    private readonly INavigationService navigationService;
 }

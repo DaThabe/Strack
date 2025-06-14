@@ -1,0 +1,109 @@
+﻿<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:vm="clr-namespace:Strack.Desktop.ViewModel.Shell.Navigation">
+
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="pack://application:,,,/Wpf.Ui;component/Controls/NavigationView/NavigationLeftFluent.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+
+
+    <!--  水平容器  -->
+    <ItemsPanelTemplate x:Key="HorizontalStackPanelTemplate">
+        <VirtualizingStackPanel Orientation="Horizontal" />
+    </ItemsPanelTemplate>
+
+    <!--  水平集合模板  -->
+    <ControlTemplate x:Key="HorizontalItemControlTemplate" TargetType="ItemsControl">
+        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+            <ItemsPresenter />
+        </ScrollViewer>
+    </ControlTemplate>
+
+    <!--  水平导航模板  -->
+    <ControlTemplate x:Key="HorizontalNavigationViewTemplate" TargetType="{x:Type ui:NavigationView}">
+        <DockPanel>
+
+            <!--  导航  -->
+            <DockPanel
+                Width="80"
+                Margin="5"
+                DockPanel.Dock="Left">
+
+                <DockPanel.Resources>
+
+                    <Style TargetType="ui:NavigationViewItem">
+                        <Setter Property="Template" Value="{StaticResource LeftFluentNavigationViewItemTemplate}" />
+                    </Style>
+
+                </DockPanel.Resources>
+
+                <!--  页脚导航  -->
+                <ItemsControl
+                    x:Name="PART_FooterMenuItemsItemsControl"
+                    DockPanel.Dock="Bottom"
+                    ItemsPanel="{StaticResource HorizontalStackPanelTemplate}"
+                    ItemsSource="{Binding FooterItemsSource}"
+                    Template="{StaticResource HorizontalItemControlTemplate}" />
+
+                <!--  导航  -->
+                <ItemsControl
+                    x:Name="PART_MenuItemsItemsControl"
+                    ItemsPanel="{StaticResource HorizontalStackPanelTemplate}"
+                    ItemsSource="{Binding ItemsSource}"
+                    Template="{StaticResource HorizontalItemControlTemplate}" />
+
+            </DockPanel>
+
+            <!--  标题  -->
+            <DockPanel DockPanel.Dock="Top">
+
+                <!--  返回  -->
+                <ui:Button
+                    x:Name="PART_BackButton"
+                    Grid.Column="0"
+                    VerticalAlignment="Center"
+                    DockPanel.Dock="Left"
+                    IsEnabled="{TemplateBinding IsBackEnabled}"
+                    Style="{StaticResource BasePaneButtonStyle}"
+                    Visibility="{TemplateBinding IsBackButtonVisible,
+                                                 Converter={StaticResource BackButtonVisibilityToVisibilityConverter}}">
+                    <ui:Button.Icon>
+                        <ui:SymbolIcon Symbol="ArrowLeft48" />
+                    </ui:Button.Icon>
+                </ui:Button>
+
+                <!--  标题  -->
+                <ContentPresenter
+                    Margin="0"
+                    VerticalAlignment="Center"
+                    Content="{TemplateBinding Header}"
+                    Visibility="{TemplateBinding HeaderVisibility}" />
+
+            </DockPanel>
+
+            <!--  内容  -->
+            <Grid Margin="5">
+
+                <!--  页面  -->
+                <ui:NavigationViewContentPresenter
+                    x:Name="PART_NavigationViewContentPresenter"
+                    MinWidth="450"
+                    Padding="{TemplateBinding Padding}"
+                    HorizontalAlignment="Center"
+                    Transition="{TemplateBinding Transition}"
+                    TransitionDuration="{TemplateBinding TransitionDuration}" />
+
+                <!--  覆盖  -->
+                <ContentPresenter
+                    Grid.Row="0"
+                    Grid.RowSpan="2"
+                    Margin="0"
+                    Content="{TemplateBinding ContentOverlay}" />
+            </Grid>
+
+        </DockPanel>
+    </ControlTemplate>
+
+</ResourceDictionary>

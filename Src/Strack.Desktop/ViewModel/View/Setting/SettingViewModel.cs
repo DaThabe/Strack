@@ -6,10 +6,7 @@ using Wpf.Ui.Appearance;
 namespace Strack.Desktop.ViewModel.View.Setting;
 
 
-public partial class SettingViewModel(
-    IThemeService themeService,
-    IStrackDesktopSetting setting
-    ) : ObservableObject
+public partial class SettingViewModel(IStrackDesktopSetting setting) : ObservableObject
 {
     /// <summary>
     /// 是否是暗色主题
@@ -18,21 +15,12 @@ public partial class SettingViewModel(
     public partial bool IsDarkTheme { get; set; }
 
 
-
     /// <summary>
     /// 切换主题
     /// </summary>
     partial void OnIsDarkThemeChanged(bool value)
     {
-        if (value)
-        {
-            themeService.SetTheme(ApplicationTheme.Dark);
-            setting.Theme = ApplicationTheme.Dark;
-        }
-        else
-        {
-            themeService.SetTheme(ApplicationTheme.Light);
-            setting.Theme = ApplicationTheme.Light;
-        }
+        ApplicationThemeManager.Apply(value ? ApplicationTheme.Light : ApplicationTheme.Light);
+        setting.IsDarkTheme = value;
     }
 }

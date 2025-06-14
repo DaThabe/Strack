@@ -1,4 +1,5 @@
 ﻿using Common;
+using FluentFrame;
 using IGPSport;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -30,7 +31,9 @@ public partial class App : Application
                 .UseXingZhe()
                 .UseIGPSport()
                 .UseStrack()
-                .UseStrackDesktop(this)
+                .UseFluentFrame()
+                .UseStrackDesktop()
+                .ConfigureServices(x => x.AddSingleton(this))
                 .Build();
 
             //日志

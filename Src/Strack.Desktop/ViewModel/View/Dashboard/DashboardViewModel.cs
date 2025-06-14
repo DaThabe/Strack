@@ -8,7 +8,7 @@ using Wpf.Ui;
 
 namespace Strack.Desktop.ViewModel.View.Dashboard;
 
-public partial class DashboardViewModel(IMainShellService mainShellService) : ObservableObject
+public partial class DashboardViewModel : ObservableObject
 {
     /// <summary>
     /// 当前选中用户
