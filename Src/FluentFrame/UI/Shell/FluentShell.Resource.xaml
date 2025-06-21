@@ -1,0 +1,586 @@
+﻿<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:cb="clr-namespace:CalcBinding;assembly=CalcBinding"
+    xmlns:dialog="clr-namespace:FluentFrame.ViewModel.Shell.Dialog"
+    xmlns:local="clr-namespace:FluentFrame.UI.Shell"
+    xmlns:message="clr-namespace:FluentFrame.ViewModel.Shell.Message"
+    xmlns:navigation="clr-namespace:FluentFrame.ViewModel.Shell.Navigation"
+    xmlns:notify="clr-namespace:FluentFrame.ViewModel.Shell.Notify"
+    xmlns:sys="clr-namespace:System;assembly=netstandard"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+
+    <!--  禁用聚焦框  -->
+    <Style TargetType="FrameworkElement">
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+    </Style>
+
+    <!--  自动滚动条竖向ItemsControl样式  -->
+    <Style x:Key="AutoScrollVerticalItemsControlStyle" TargetType="ItemsControl">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate>
+
+                    <ScrollViewer
+                        FocusVisualStyle="{x:Null}"
+                        Focusable="False"
+                        HorizontalScrollBarVisibility="Disabled"
+                        VerticalScrollBarVisibility="Auto">
+                        <ItemsPresenter />
+                    </ScrollViewer>
+
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="ItemsPanel">
+            <Setter.Value>
+                <ItemsPanelTemplate>
+
+                    <VirtualizingStackPanel
+                        FocusVisualStyle="{x:Null}"
+                        Focusable="False"
+                        Orientation="Vertical" />
+
+                </ItemsPanelTemplate>
+            </Setter.Value>
+        </Setter>
+
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+    </Style>
+
+
+
+    <!--  夜间模式开关样式  -->
+    <Style x:Key="DarkModeDarkModeToggleButtonStyle" TargetType="{x:Type ToggleButton}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ToggleButton}">
+
+                    <ui:SymbolIcon x:Name="Icon" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Icon" Property="Symbol" Value="WeatherMoon24" />
+                        </Trigger>
+
+                        <Trigger Property="IsChecked" Value="False">
+                            <Setter TargetName="Icon" Property="Symbol" Value="WeatherSunny24" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+
+
+    <!--  弹窗数据模板  -->
+    <DataTemplate x:Key="DialogDataTemplate" DataType="{x:Type dialog:DialogViewModel}">
+        <Border
+            Grid.Row="1"
+            MinWidth="200"
+            MinHeight="150"
+            Padding="20"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Background="{DynamicResource ApplicationBackgroundBrush}"
+            CornerRadius="5">
+            <DockPanel>
+
+                <!--  标题栏  -->
+                <DockPanel DockPanel.Dock="Top">
+                    <!--  图标  -->
+                    <ContentControl Content="{Binding Icon}" DockPanel.Dock="Left" />
+                    <!--  关闭  -->
+                    <Button Command="{Binding CloseCommand}" DockPanel.Dock="Right">
+                        <ui:SymbolIcon Symbol="Dismiss24" />
+                    </Button>
+                    <!--  标题  -->
+                    <ui:TextBlock Text="{Binding Title}" />
+                </DockPanel>
+
+                <!--  内容  -->
+                <ScrollViewer
+                    Margin="5"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    FocusVisualStyle="{x:Null}"
+                    Focusable="False"
+                    HorizontalScrollBarVisibility="Auto"
+                    VerticalScrollBarVisibility="Auto">
+                    <ContentControl
+                        Content="{Binding Content}"
+                        FocusVisualStyle="{x:Null}"
+                        Focusable="False" />
+                </ScrollViewer>
+
+            </DockPanel>
+
+            <Border.Effect>
+                <DropShadowEffect
+                    BlurRadius="50"
+                    Opacity="0.2"
+                    Color="{DynamicResource SystemFillColorAttention}" />
+            </Border.Effect>
+
+            <Border.LayoutTransform>
+                <ScaleTransform x:Name="ScaleTransform" ScaleX="0" ScaleY="0" />
+            </Border.LayoutTransform>
+
+        </Border>
+
+        <DataTemplate.Triggers>
+
+            <DataTrigger Binding="{Binding IsActive}" Value="True">
+                <DataTrigger.EnterActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation
+                                Storyboard.TargetName="ScaleTransform"
+                                Storyboard.TargetProperty="ScaleX"
+                                From="0"
+                                To="1"
+                                Duration="0:0:.2">
+                                <DoubleAnimation.EasingFunction>
+                                    <CubicEase EasingMode="EaseInOut" />
+                                </DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+
+                            <DoubleAnimation
+                                Storyboard.TargetName="ScaleTransform"
+                                Storyboard.TargetProperty="ScaleY"
+                                From="0"
+                                To="1"
+                                Duration="0:0:.2">
+                                <DoubleAnimation.EasingFunction>
+                                    <CubicEase EasingMode="EaseIn" />
+                                </DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+
+                        </Storyboard>
+                    </BeginStoryboard>
+                </DataTrigger.EnterActions>
+
+                <DataTrigger.ExitActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+
+                            <DoubleAnimation
+                                Storyboard.TargetName="ScaleTransform"
+                                Storyboard.TargetProperty="ScaleX"
+                                From="1"
+                                To="0"
+                                Duration="0:0:.1" />
+                            <DoubleAnimation
+                                Storyboard.TargetName="ScaleTransform"
+                                Storyboard.TargetProperty="ScaleY"
+                                From="1"
+                                To="0"
+                                Duration="0:0:.1" />
+
+                        </Storyboard>
+                    </BeginStoryboard>
+                </DataTrigger.ExitActions>
+            </DataTrigger>
+
+        </DataTemplate.Triggers>
+
+    </DataTemplate>
+
+
+    <!--  消息弹窗开关样式  -->
+    <Style x:Key="MessagePopupToggleButtonStyle" TargetType="{x:Type ToggleButton}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ToggleButton}">
+
+                    <ui:SymbolIcon Foreground="{DynamicResource TextFillColorPrimaryBrush}" Symbol="Alert24" />
+
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!--  消息数量数据模板  -->
+    <DataTemplate x:Key="MessageCountDateTempalte" DataType="{x:Type sys:Int32}">
+        <Border
+            Width="Auto"
+            Height="12"
+            MaxWidth="25"
+            Padding="2,0"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Top"
+            Background="{DynamicResource BadgeBackground}"
+            CornerRadius="2"
+            IsHitTestVisible="False">
+            <TextBlock
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                FontSize="8"
+                FontWeight="Medium"
+                Foreground="#fff"
+                Opacity="0.8"
+                Text="{Binding}"
+                TextTrimming="CharacterEllipsis"
+                TextWrapping="NoWrap" />
+        </Border>
+    </DataTemplate>
+
+
+    <!--  消息元素模板  -->
+    <DataTemplate x:Key="MessageItemDataTemptlate" DataType="{x:Type message:MessageItemViewModel}">
+        <ui:Button
+            Margin="3"
+            Padding="15"
+            HorizontalAlignment="Stretch"
+            Appearance="{Binding Appearance}">
+            <DockPanel>
+
+                <!--  标题栏  -->
+                <DockPanel Margin="0,0,0,5" DockPanel.Dock="Top">
+
+                    <!--  关闭  -->
+                    <ui:Button
+                        Margin="5,0,0,0"
+                        Padding="0"
+                        VerticalAlignment="Center"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Command="{Binding CloseCommand}"
+                        CommandParameter="{Binding}"
+                        DockPanel.Dock="Right">
+                        <ui:SymbolIcon Symbol="Dismiss24" />
+                    </ui:Button>
+
+                    <!--  时间  -->
+                    <ui:TextBlock
+                        VerticalAlignment="Center"
+                        FontTypography="Caption"
+                        Text="{Binding TimeFormat}" />
+
+                </DockPanel>
+
+                <!--  标题  -->
+                <ui:TextBlock
+                    Margin="0,0,0,5"
+                    DockPanel.Dock="Top"
+                    FontTypography="BodyStrong"
+                    Text="{Binding Title}" />
+                <!--  内容  -->
+                <ContentControl Content="{Binding Content}" />
+
+            </DockPanel>
+        </ui:Button>
+
+    </DataTemplate>
+
+
+    <!--  消息元素集合样式  -->
+    <Style
+        x:Key="MessageItemsControlStyle"
+        BasedOn="{StaticResource AutoScrollVerticalItemsControlStyle}"
+        TargetType="{x:Type ItemsControl}">
+        <Setter Property="ItemTemplate" Value="{StaticResource MessageItemDataTemptlate}" />
+    </Style>
+
+    <!--  消息弹窗样式  -->
+    <Style x:Key="MessagePopupStyle" TargetType="{x:Type Popup}">
+        <Setter Property="MaxHeight" Value="800" />
+        <Setter Property="MaxWidth" Value="1000" />
+        <Setter Property="Placement" Value="Bottom" />
+        <Setter Property="StaysOpen" Value="False" />
+        <Setter Property="AllowsTransparency" Value="True" />
+    </Style>
+
+
+    <!--  导航菜单元素模板  -->
+    <DataTemplate x:Key="NavigationMenuItemDataTemplate" DataType="{x:Type navigation:MenuItemViewModel}">
+        <ui:Button
+            Margin="3"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Command="{Binding DataContext.NavigationToCommand, RelativeSource={RelativeSource AncestorType=local:FluentShell}}"
+            CommandParameter="{Binding TargetPageType}"
+            FocusVisualStyle="{x:Null}"
+            Focusable="False">
+            <ui:Button.Template>
+                <ControlTemplate TargetType="ui:Button">
+
+                    <Border
+                        x:Name="MainBorder"
+                        Width="{StaticResource PaneFluentButtonWidth}"
+                        Height="{StaticResource PaneFluentButtonHeight}"
+                        Padding="4"
+                        HorizontalAlignment="Stretch"
+                        Background="Transparent"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="4"
+                        FocusVisualStyle="{x:Null}"
+                        Focusable="False">
+                        <Grid>
+                            <Rectangle
+                                x:Name="ActiveRectangle"
+                                Width="24"
+                                Height="3"
+                                Margin="0,0,0,-4"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Bottom"
+                                Fill="{DynamicResource NavigationViewSelectionIndicatorForeground}"
+                                Opacity="0.0"
+                                RadiusX="2"
+                                RadiusY="2" />
+
+                            <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <ContentPresenter
+                                    x:Name="IconContentPresenter"
+                                    Grid.Row="0"
+                                    Margin="0"
+                                    Content="{Binding Icon}"
+                                    TextElement.FontSize="{StaticResource NavigationViewFluentIconSize}"
+                                    TextElement.Foreground="{DynamicResource NavigationViewItemForegroundLeftFluent}"
+                                    Visibility="{cb:Binding 'Icon!=null'}" />
+
+                                <Grid
+                                    x:Name="ContentGrid"
+                                    Grid.Row="1"
+                                    Height="{StaticResource NavigationViewFluentIconSize}"
+                                    Margin="0,2,0,0">
+                                    <ContentPresenter
+                                        x:Name="ElementContentPresenter"
+                                        HorizontalAlignment="Center"
+                                        Content="{Binding Content}"
+                                        TextElement.Foreground="{DynamicResource NavigationViewItemForegroundLeftFluent}" />
+                                </Grid>
+
+                                <!--<ContentPresenter
+x:Name="PART_InfoBadge"
+Grid.Row="0"
+Margin="0"
+HorizontalAlignment="Right"
+VerticalAlignment="Top"
+Content="{TemplateBinding InfoBadge}" />-->
+                            </Grid>
+                        </Grid>
+                    </Border>
+
+                    <ControlTemplate.Triggers>
+
+                        <!--  选中动画  -->
+                        <DataTrigger Binding="{Binding IsActive}" Value="True">
+                            <Setter TargetName="ActiveRectangle" Property="Opacity" Value="1.0" />
+                            <Setter TargetName="MainBorder" Property="Background" Value="{DynamicResource NavigationViewItemBackgroundSelectedLeftFluent}" />
+                            <Setter TargetName="IconContentPresenter" Property="TextElement.Foreground" Value="{DynamicResource NavigationViewSelectionIndicatorForeground}" />
+                            <Setter TargetName="ElementContentPresenter" Property="Margin" Value="0" />
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="ContentGrid"
+                                            Storyboard.TargetProperty="Height"
+                                            From="{StaticResource NavigationViewFluentIconSize}"
+                                            To="0"
+                                            Duration="0:0:.16" />
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="ContentGrid"
+                                            Storyboard.TargetProperty="Opacity"
+                                            From="1"
+                                            To="0"
+                                            Duration="0:0:.16" />
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="MainBorder"
+                                            Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Opacity)"
+                                            From="0"
+                                            To="1"
+                                            Duration="0:0:.16" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.EnterActions>
+                            <DataTrigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="ContentGrid"
+                                            Storyboard.TargetProperty="Height"
+                                            From="0"
+                                            To="{StaticResource NavigationViewFluentIconSize}"
+                                            Duration="0:0:.16" />
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="ContentGrid"
+                                            Storyboard.TargetProperty="Opacity"
+                                            From="0"
+                                            To="1"
+                                            Duration="0:0:.16" />
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="MainBorder"
+                                            Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Opacity)"
+                                            From="1"
+                                            To="0"
+                                            Duration="0:0:.16" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.ExitActions>
+                        </DataTrigger>
+
+                        <!--  鼠标进入  -->
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="MainBorder" Property="Background" Value="{DynamicResource NavigationViewItemBackgroundSelectedLeftFluent}" />
+                        </Trigger>
+
+                        <!--  鼠标进入且不是活跃状态  -->
+                        <MultiDataTrigger>
+
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=ui:Button}}" Value="True" />
+                                <Condition Binding="{Binding IsActive}" Value="False" />
+                            </MultiDataTrigger.Conditions>
+
+                            <MultiDataTrigger.Setters>
+                                <Setter TargetName="IconContentPresenter" Property="TextElement.Foreground" Value="{DynamicResource NavigationViewItemForegroundPointerOverLeftFluent}" />
+                                <Setter TargetName="ContentGrid" Property="TextElement.Foreground" Value="{DynamicResource NavigationViewItemForegroundPointerOverLeftFluent}" />
+                            </MultiDataTrigger.Setters>
+
+                        </MultiDataTrigger>
+
+                    </ControlTemplate.Triggers>
+
+                </ControlTemplate>
+            </ui:Button.Template>
+        </ui:Button>
+    </DataTemplate>
+
+    <!--  导航记录元素模板  -->
+    <DataTemplate x:Key="NavigationRecordItemDataTemplate" DataType="{x:Type navigation:RecordItemViewModel}">
+        <StackPanel VerticalAlignment="Center">
+
+            <Button
+                Background="Transparent"
+                BorderThickness="0"
+                Command="{Binding DataContext.NavigationRecordItemClickedCommand, RelativeSource={RelativeSource AncestorType={x:Type local:FluentShell}}}"
+                CommandParameter="{Binding}">
+                <StackPanel Orientation="Horizontal">
+                    <ContentPresenter
+                        Margin="0,0,0,5"
+                        VerticalAlignment="Center"
+                        Content="{Binding Icon}" />
+
+                    <ContentPresenter VerticalAlignment="Center" Content="{Binding Content}" />
+                </StackPanel>
+            </Button>
+
+        </StackPanel>
+    </DataTemplate>
+
+    <!--  导航菜单ItemControl样式  -->
+    <Style
+        x:Key="NavigationMenuItemControlStyle"
+        BasedOn="{StaticResource AutoScrollVerticalItemsControlStyle}"
+        TargetType="{x:Type ItemsControl}">
+
+        <Setter Property="ItemTemplate" Value="{StaticResource NavigationMenuItemDataTemplate}" />
+
+    </Style>
+
+
+
+    <!--  通知元素模板  -->
+    <DataTemplate x:Key="NotifyItemDataTempalte" DataType="{x:Type notify:NotifyItemViewModel}">
+
+        <ContentControl Content="{Binding}">
+            <ContentControl.Template>
+                <ControlTemplate>
+
+                    <!--  模板  -->
+                    <ui:Button
+                        x:Name="RootButton"
+                        HorizontalAlignment="Right"
+                        Appearance="{Binding Appearance}"
+                        Icon="{Binding Icon}">
+                        <DockPanel Margin="5">
+
+                            <!--  关闭按钮  -->
+                            <ui:Button
+                                VerticalAlignment="Center"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Command="{Binding DataContext.CloseNotifyCommand, RelativeSource={RelativeSource AncestorType={x:Type local:FluentShell}}}"
+                                CommandParameter="{Binding}"
+                                DockPanel.Dock="Right"
+                                FocusVisualStyle="{x:Null}"
+                                Focusable="False">
+                                <ui:SymbolIcon Symbol="Dismiss24" />
+                            </ui:Button>
+
+                            <!--  内容  -->
+                            <StackPanel VerticalAlignment="Center">
+                                <ui:TextBlock FontTypography="BodyStrong" Text="{Binding Title}" />
+                                <ContentControl Margin="0,5,0,0" Content="{Binding Content}" />
+                            </StackPanel>
+
+                        </DockPanel>
+
+                        <ui:Button.LayoutTransform>
+                            <ScaleTransform x:Name="ScaleTransform" ScaleX="0" />
+                        </ui:Button.LayoutTransform>
+
+                    </ui:Button>
+
+                    <!--  触发器  -->
+                    <ControlTemplate.Triggers>
+
+                        <DataTrigger Binding="{Binding IsActive}" Value="True">
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="ScaleTransform"
+                                            Storyboard.TargetProperty="ScaleX"
+                                            From="0"
+                                            To="1"
+                                            Duration="0:0:.15" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.EnterActions>
+
+                            <DataTrigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="ScaleTransform"
+                                            Storyboard.TargetProperty="ScaleX"
+                                            From="1"
+                                            To="0"
+                                            Duration="0:0:.1" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.ExitActions>
+                        </DataTrigger>
+
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </ContentControl.Template>
+        </ContentControl>
+
+    </DataTemplate>
+
+    <!--  通知元素集合控件样式  -->
+    <Style
+        x:Key="NotifyItemsControlStyle"
+        BasedOn="{StaticResource AutoScrollVerticalItemsControlStyle}"
+        TargetType="{x:Type ItemsControl}">
+
+        <Setter Property="Margin" Value="5" />
+        <Setter Property="HorizontalAlignment" Value="Right" />
+        <Setter Property="VerticalAlignment" Value="Bottom" />
+        <Setter Property="ItemTemplate" Value="{StaticResource NotifyItemDataTempalte}" />
+
+    </Style>
+
+</ResourceDictionary>

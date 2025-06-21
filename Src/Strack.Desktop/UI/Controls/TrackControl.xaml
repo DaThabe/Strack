@@ -1,0 +1,20 @@
+﻿<UserControl
+    x:Class="Strack.Desktop.UI.Controls.TrackControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:Strack.Desktop.UI.Controls"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Path
+        x:Name="PART_Path"
+        Fill="Transparent"
+        Stroke="{DynamicResource InfoBadgeAttentionSeverityBackgroundBrush}"
+        StrokeThickness="{Binding LineThickness, RelativeSource={RelativeSource AncestorType=local:TrackControl}}">
+        <Path.RenderTransform>
+            <ScaleTransform x:Name="PART_Scale" />
+        </Path.RenderTransform>
+    </Path>
+
+</UserControl>

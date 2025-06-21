@@ -1,4 +1,4 @@
-﻿using Strack.Desktop.UI.Control;
+﻿using Strack.Desktop.UI.Controls;
 using System.Windows.Markup;
 using System.Windows.Shapes;
 

@@ -11,7 +11,7 @@ internal static class GeometryExtension
     /// </summary>
     /// <param name="positions">原始经纬度坐标（纬度, 经度）</param>
     /// <returns>归一化后的点集合</returns>
-    public static List<Point> NormalizeToOrigin(this IEnumerable<(double Longitude, double Latitude)> positions)
+    public static IEnumerable<Point> NormalizeToOrigin(this IEnumerable<(double Longitude, double Latitude)> positions)
     {
         var posList = positions.ToList();
         if (posList.Count == 0) return [];
@@ -21,12 +21,10 @@ internal static class GeometryExtension
         double maxLat = posList.Max(p => p.Latitude);
 
         // 注意 Y 轴反向：WPF 中 Y 轴向下增长
-        return [
-            .. posList.Select(p => new Point(
+        return posList.Select(p => new Point(
             p.Longitude - minLon,       // X: 经度平移
             maxLat - p.Latitude         // Y: 纬度反转 + 平移
-        ))
-        ];
+        ));
     }
 
     /// <summary>
@@ -35,9 +33,9 @@ internal static class GeometryExtension
     /// <param name="points">归一化后的点</param>
     /// <param name="scale">缩放比例</param>
     /// <returns>缩放后的点集合</returns>
-    public static List<Point> ScaleBy(this IEnumerable<Point> points, double scale)
+    public static IEnumerable<Point> ScaleBy(this IEnumerable<Point> points, double scale)
     {
-        return [.. points.Select(p => new Point(p.X * scale, p.Y * scale))];
+        return points.Select(p => new Point(p.X * scale, p.Y * scale));
     }
 
     /// <summary>
@@ -46,20 +44,27 @@ internal static class GeometryExtension
     /// <param name="points">归一化后的点</param>
     /// <param name="targetSize">目标尺寸，最长边将缩放至此值</param>
     /// <returns>缩放后的点集合</returns>
-    public static List<Point> ScaleToFit(this IEnumerable<Point> points, double targetSize)
+    public static IEnumerable<Point> ScaleToFit(this IEnumerable<Point> points, double targetSize)
     {
-        double minX = points.Min(p => p.X);
-        double maxX = points.Max(p => p.X);
-        double minY = points.Min(p => p.Y);
-        double maxY = points.Max(p => p.Y);
+        try
+        {
+            double minX = points.Min(p => p.X);
+            double maxX = points.Max(p => p.X);
+            double minY = points.Min(p => p.Y);
+            double maxY = points.Max(p => p.Y);
 
-        double width = maxX - minX;
-        double height = maxY - minY;
+            double width = maxX - minX;
+            double height = maxY - minY;
 
-        if (width == 0 && height == 0) return [.. points]; // 单点或无变化
+            if (width == 0 && height == 0) return [.. points]; // 单点或无变化
 
-        double scale = targetSize / Math.Max(width, height);
-        return points.ScaleBy(scale);
+            double scale = targetSize / Math.Max(width, height);
+            return points.ScaleBy(scale);
+        }
+        catch
+        {
+            return [];
+        }
     }
 
     /// <summary>
@@ -93,11 +98,55 @@ internal static class GeometryExtension
     }
 
     /// <summary>
+    /// 降采样点集合：保留第一个和最后一个点，中间每隔 step 个点保留一个。
+    /// </summary>
+    /// <param name="points">原始点集合</param>
+    /// <param name="step">步长，例如 10 表示每隔 10 个点保留一个</param>
+    public static IEnumerable<Point> DownSampleByStep(this IEnumerable<Point> points, int step)
+    {
+        if (step <= 0) return points;
+
+        var list = points.ToList();
+        int count = list.Count;
+
+        if (count <= 2) return list;
+
+        var result = new List<Point>(count / step + 2)
+        {
+            list[0] // 保留第一个点
+        };
+
+        for (int i = step; i < count - 1; i += step)
+        {
+            result.Add(list[i]);
+        }
+
+        result.Add(list[^1]); // 保留最后一个点
+        return result;
+    }
+
+    public static IEnumerable<Point> DownSampleByTargetCount(this IEnumerable<Point> points, int targetCount)
+    {
+        if (targetCount < 2) return points;
+
+        var list = points.ToList();
+        int count = list.Count;
+        if (count <= targetCount) return list;
+
+        double step = (double)(count - 2) / (targetCount - 2);
+
+        return points.DownSampleByStep((int)step);
+    }
+
+
+
+
+    /// <summary>
     /// 将坐标浮点数裁剪到指定小数点后位数
     /// </summary>
-    public static List<Point> RoundCoordinates(this IEnumerable<Point> points, int digits)
+    public static IEnumerable<Point> RoundCoordinates(this IEnumerable<Point> points, int digits = 2)
     {
-        return [.. points.Select(p => new Point(Math.Round(p.X, digits),Math.Round(p.Y, digits)))];
+        return points.Select(p => new Point(Math.Round(p.X, digits), Math.Round(p.Y, digits)));
     }
 
 
@@ -127,5 +176,64 @@ internal static class GeometryExtension
 
         geometry.Freeze();
         return geometry;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /// <summary>
+    /// 降采样点集合：保留第一个和最后一个点，中间每隔 step 个点保留一个。
+    /// </summary>
+    /// <param name="positions">原始点集合</param>
+    /// <param name="step">步长，例如 10 表示每隔 10 个点保留一个</param>
+    public static List<(double Lon, double Lat)> DownSampleByStep(this IEnumerable<(double Lon, double Lat)> positions, int step)
+    {
+        if (step <= 0) return positions.ToList();
+
+        var list = positions.ToList();
+        int count = list.Count;
+
+        if (count <= 2) return list;
+
+        var result = new List<(double Lon, double Lat)>(count / step + 2)
+        {
+            list[0] // 保留第一个点
+        };
+
+        for (int i = step; i < count - 1; i += step)
+        {
+            result.Add(list[i]);
+        }
+
+        result.Add(list[^1]); // 保留最后一个点
+        return result;
+    }
+
+    public static List<(double Lon, double Lat)> DownSampleByTargetCount(this IEnumerable<(double Lon, double Lat)> points, int targetCount)
+    {
+        if (targetCount < 2) return points.ToList();
+
+        var list = points.ToList();
+        int count = list.Count;
+        if (count <= targetCount) return list;
+
+        double step = (double)(count - 2) / (targetCount - 2);
+
+        return points.DownSampleByStep((int)step);
     }
 }

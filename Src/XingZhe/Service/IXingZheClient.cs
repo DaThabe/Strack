@@ -5,6 +5,7 @@ using Common.Service.File;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Xml.Linq;
 using UnitsNet;
 using UnitsNet.Units;
@@ -28,7 +29,7 @@ public interface IXingZheClient
     /// 获取用户信息
     /// </summary>
     /// <returns></returns>
-    Task<UserInfo> GetUserInfoAsync();
+    Task<UserInfo> GetUserInfoAsync(CancellationToken cancellation = default);
 
     /// <summary>
     /// 获取训练摘要
@@ -37,35 +38,35 @@ public interface IXingZheClient
     /// <param name="limit">数量</param>
     /// <param name="sport">运动类型</param>
     /// <returns></returns>
-    Task<List<WorkoutSummary>> GetWorkoutSummaryAsync(int offset, int limit, WorkoutType? sport = null);
+    Task<List<WorkoutSummary>> GetWorkoutSummaryAsync(int offset, int limit, WorkoutType? sport = null, CancellationToken cancellation = default);
 
     /// <summary>
     /// 获取训练摘要
     /// </summary>
     /// <param name="sport">运动类型</param>
     /// <returns></returns>
-    IAsyncEnumerable<WorkoutSummary> GetWorkoutSummaryAsync(WorkoutType? sport = null);
+    IAsyncEnumerable<WorkoutSummary> GetWorkoutSummaryAsync(WorkoutType? sport = null, CancellationToken cancellation = default);
 
     /// <summary>
     /// 获取训练明细
     /// </summary>
     /// <param name="workoutId">运动记录Id</param>
     /// <returns></returns>
-    Task<WorkoutDetail> GetWorkoutDetailAsync(long workoutId);
+    Task<WorkoutDetail> GetWorkoutDetailAsync(long workoutId, CancellationToken cancellation = default);
 
     /// <summary>
     /// 获取训练轨迹 (Gpx文件, 仅包含经纬度,时间)
     /// </summary>
     /// <param name="workoutId">运动记录Id</param>
     /// <returns></returns>
-    Task<GpxFile> GetWorkoutTrackAsync(long workoutId);
+    Task<GpxFile> GetWorkoutTrackAsync(long workoutId, CancellationToken cancellation = default);
 
     /// <summary>
     /// 获取训练记录点
     /// </summary>
     /// <param name="workoutId">运动记录Id</param>
     /// <returns></returns>
-    Task<List<Record>> GetWorkoutRecordAsync(long workoutId);
+    Task<List<Record>> GetWorkoutRecordAsync(long workoutId, CancellationToken cancellation = default);
 }
 
 /// <summary>
@@ -75,14 +76,14 @@ public interface IXingZheClient
 /// <param name="client"></param>
 public class XingZheClient(IServiceProvider services, HttpClient client) : IXingZheClient
 {
-    public async Task<UserInfo> GetUserInfoAsync()
+    public async Task<UserInfo> GetUserInfoAsync(CancellationToken cancellation = default)
     {
         logger.LogTrace("正在获取用户信息");
 
         try
         {
             var url = BuildUserInfoUrl();
-            var root = await client.GetJsonOrDefaultAsync(url);
+            var root = await client.GetJsonOrDefaultAsync(url, cancellation: cancellation);
             JToken data = root?.SelectToken("data") ?? throw new ArgumentException("响应结果不存在 data 节点");
 
             //用户Id
@@ -124,14 +125,14 @@ public class XingZheClient(IServiceProvider services, HttpClient client) : IXing
         }
     }
 
-    public async Task<List<WorkoutSummary>> GetWorkoutSummaryAsync(int offset = 0, int limit = 24, WorkoutType? sport = null)
+    public async Task<List<WorkoutSummary>> GetWorkoutSummaryAsync(int offset = 0, int limit = 24, WorkoutType? sport = null, CancellationToken cancellation = default)
     {
         logger.LogTrace("正在获取训练摘要列表, Offset:{offset}, Limit:{limit}, Sport:{sport}", offset, limit, sport);
 
         try
         {
             var url = BuildWorkoutsSummaryUrl(offset, limit, sport);
-            var root = await client.GetJsonAsync(url);
+            var root = await client.GetJsonAsync(url, cancellation: cancellation);
             var data = root.SelectToken("data.data") ?? throw new ArgumentException("响应结果不存在 data.data 节点");
 
             List<WorkoutSummary> items = [];
@@ -188,7 +189,7 @@ public class XingZheClient(IServiceProvider services, HttpClient client) : IXing
             return summary;
         }
     }
-    public async IAsyncEnumerable<WorkoutSummary> GetWorkoutSummaryAsync(WorkoutType? sport = null)
+    public async IAsyncEnumerable<WorkoutSummary> GetWorkoutSummaryAsync(WorkoutType? sport = null, [EnumeratorCancellation] CancellationToken cancellation = default)
     {
         int retryCount = 0;
 
@@ -198,7 +199,7 @@ public class XingZheClient(IServiceProvider services, HttpClient client) : IXing
 
             try
             {
-                results = await GetWorkoutSummaryAsync(offset, limit, sport);
+                results = await GetWorkoutSummaryAsync(offset, limit, sport, cancellation);
                 retryCount = 0;
                 if (results.Count == 0) break;
             }
@@ -212,7 +213,7 @@ public class XingZheClient(IServiceProvider services, HttpClient client) : IXing
 
                 logger.LogError(ex, "训练摘要列表请求失败:{code}, 将在1秒后重新请求", httpEx.StatusCode);
 
-                await Task.Delay(1000);
+                await Task.Delay(1000, cancellation);
                 offset -= limit;
                 retryCount++;
                 
@@ -225,14 +226,14 @@ public class XingZheClient(IServiceProvider services, HttpClient client) : IXing
         yield break;
     }
 
-    public async Task<WorkoutDetail> GetWorkoutDetailAsync(long workoutId)
+    public async Task<WorkoutDetail> GetWorkoutDetailAsync(long workoutId, CancellationToken cancellation = default)
     {
         logger.LogTrace("正在获取训练明细, WorkoutId:{workoutId}", workoutId);
 
         try
         {
             var url = BuildActivityDetailUrl(workoutId);
-            var root = await client.GetJsonAsync(url);
+            var root = await client.GetJsonAsync(url, cancellation: cancellation);
             var workout = root.SelectToken("data.workout") ?? throw new ArgumentException("响应结果不存在 data.workout 节点");
             var user = root.SelectToken("data.user") ?? throw new ArgumentException("响应结果不存在 data.user 节点");
 
@@ -415,14 +416,14 @@ public class XingZheClient(IServiceProvider services, HttpClient client) : IXing
         }
     }
 
-    public async Task<GpxFile> GetWorkoutTrackAsync(long workoutId)
+    public async Task<GpxFile> GetWorkoutTrackAsync(long workoutId, CancellationToken cancellation = default)
     {
         logger.LogTrace("正在获取训轨迹, WorkoutId:{workoutId}", workoutId);
 
         try
         {
             string url = BuildTrackPointSummaryUrl(workoutId);
-            var gpxDocString = await client.GetStringAsync(url);
+            var gpxDocString = await client.GetStringAsync(url, cancellation);
 
             var document = XDocument.Parse(gpxDocString);
             var gpxFile = gpxService.Deserialize(document);
@@ -443,14 +444,14 @@ public class XingZheClient(IServiceProvider services, HttpClient client) : IXing
             throw new XingZheAPIException("取训轨迹获取失败", ex);
         }
     }
-    public async Task<List<Record>> GetWorkoutRecordAsync(long workoutId)
+    public async Task<List<Record>> GetWorkoutRecordAsync(long workoutId, CancellationToken cancellation = default)
     {
         logger.LogTrace("正在获取训练记录点信息, WorkoutId:{workoutId}", workoutId);
 
         try
         {
             string url = BuildTrackPointDetailUrl(workoutId);
-            var root = await client.GetJsonAsync(url);
+            var root = await client.GetJsonAsync(url, cancellation: cancellation);
             var data = root?.SelectToken("data") ?? throw new ArgumentException("响应结果不存在 data 节点");
 
             List<Record> trackPoints = [];

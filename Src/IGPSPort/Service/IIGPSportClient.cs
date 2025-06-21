@@ -9,6 +9,7 @@ using IGPSport.Model.User.Activity.Summary;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using UnitsNet;
 using UnitsNet.Units;
 
@@ -20,7 +21,7 @@ public interface IIGPSportClient
     /// 获取用户信息
     /// </summary>
     /// <returns></returns>
-    Task<UserInfo> GetUserInfoAsync();
+    Task<UserInfo> GetUserInfoAsync(CancellationToken cancellation = default);
 
     /// <summary>
     /// 获取活动摘要列表
@@ -29,28 +30,28 @@ public interface IIGPSportClient
     /// <param name="pageSize">页面数量 (最大20)</param>
     /// <param name="type">活动类型</param>
     /// <returns></returns>
-    Task<List<ActivitySummary>> GetActivitySummaryAsync(int pageNo, int pageSize = 20, ActivityType type = ActivityType.All);
+    Task<List<ActivitySummary>> GetActivitySummaryAsync(int pageNo, int pageSize = 20, ActivityType type = ActivityType.All, CancellationToken cancellation = default);
 
     /// <summary>
     /// 获取活动摘要列表
     /// </summary>
     /// <param name="type">活动类型</param>
     /// <returns></returns>
-    IAsyncEnumerable<ActivitySummary> GetActivitySummaryAsync(ActivityType type = ActivityType.All);
+    IAsyncEnumerable<ActivitySummary> GetActivitySummaryAsync(ActivityType type = ActivityType.All, CancellationToken cancellation = default);
 
     /// <summary>
     /// 获取活动详情
     /// </summary>
     /// <param name="activityId">活动Id</param>
     /// <returns></returns>
-    Task<ActivityDetail> GetActivityDetail(long activityId);
+    Task<ActivityDetail> GetActivityDetail(long activityId, CancellationToken cancellation = default);
 
     /// <summary>
     /// 获取活动 Fit 文件
     /// </summary>
     /// <param name="sport">运动类型</param>
     /// <returns></returns>
-    Task<FitFile> GetActivityFitFileAsync(string fitFileUrl);
+    Task<FitFile> GetActivityFitFileAsync(string fitFileUrl, CancellationToken cancellation = default);
 }
 
 public class IGPSportClient(
@@ -58,14 +59,14 @@ public class IGPSportClient(
     HttpClient client
     ) : IIGPSportClient
 {
-    public async Task<UserInfo> GetUserInfoAsync()
+    public async Task<UserInfo> GetUserInfoAsync(CancellationToken cancellation = default)
     {
         logger.LogTrace("正在获取用户信息");
 
         try
         {
             var url = BuildUserInfoUrl();
-            var root = await client.GetJsonOrDefaultAsync(url);
+            var root = await client.GetJsonOrDefaultAsync(url, cancellation: cancellation);
             JToken data = root?.SelectToken("data") ?? throw new ArgumentException("响应结果不存在 data 节点");
 
             //用户Id
@@ -128,14 +129,14 @@ public class IGPSportClient(
         }
     }
 
-    public async Task<List<ActivitySummary>> GetActivitySummaryAsync(int pageNo, int pageSize = 20, ActivityType sport = ActivityType.All)
+    public async Task<List<ActivitySummary>> GetActivitySummaryAsync(int pageNo, int pageSize = 20, ActivityType sport = ActivityType.All, CancellationToken cancellation = default)
     {
         logger.LogTrace("正在获取活动简要, PageNo.:{pageNo}, PageSize:{pageSize}, Sport:{sport}", pageNo, pageSize, sport);
 
         try
         {
             var url = BuildActivitySummaryUrl(pageNo, pageSize, sport);
-            var root = await client.GetJsonAsync(url);
+            var root = await client.GetJsonAsync(url, cancellation: cancellation);
             var rows = root.SelectToken("data.rows") ?? throw new ArgumentException("响应结果不存在 data.rows 节点");
 
             List<ActivitySummary> activitySummaries = [];
@@ -193,7 +194,7 @@ public class IGPSportClient(
             return activitySummary;
         }
     }
-    public async IAsyncEnumerable<ActivitySummary> GetActivitySummaryAsync(ActivityType sport =  ActivityType.All)
+    public async IAsyncEnumerable<ActivitySummary> GetActivitySummaryAsync(ActivityType sport =  ActivityType.All, [EnumeratorCancellation] CancellationToken cancellation = default)
     {
         int retryCount = 0;
 
@@ -203,11 +204,11 @@ public class IGPSportClient(
 
             try
             {
-                var summaries = await GetActivitySummaryAsync(pageNo, pageSize, sport);
+                var summaries = await GetActivitySummaryAsync(pageNo, pageSize, sport, cancellation);
                 if (summaries.Count == 0) break;
 
                 results.AddRange(summaries);
-                await Task.Delay(100);
+                await Task.Delay(100, cancellation);
             }
             catch(IGSportAPIException ex) when(ex.InnerException is HttpRequestException httpEx)
             {
@@ -219,13 +220,13 @@ public class IGPSportClient(
 
                 logger.LogError(ex, "迹驰活动列表请求失败:{code}, 将在1秒后重新请求", httpEx.StatusCode);
 
-                await Task.Delay(1000);
+                await Task.Delay(1000, cancellation);
                 pageNo--;
                 retryCount++;
 
                 continue;
             }
-            catch (IGSportAPIException)
+            catch
             {
                 break;
             }
@@ -236,14 +237,14 @@ public class IGPSportClient(
         yield break;
     }
 
-    public async Task<ActivityDetail> GetActivityDetail(long activityId)
+    public async Task<ActivityDetail> GetActivityDetail(long activityId, CancellationToken cancellation = default)
     {
         logger.LogTrace("正在获取迹驰活动数据, ActivityId:{activityId}", activityId);
 
         try
         {
             var url = BuildActivityDataUrl(activityId);
-            var root = await client.GetJsonAsync(url);
+            var root = await client.GetJsonAsync(url, cancellation: cancellation);
             var data = root.SelectToken("data") ?? throw new ArgumentException("响应结果不存在 data 节点");
 
             //Id
@@ -425,7 +426,7 @@ public class IGPSportClient(
         }
     }
 
-    public async Task<FitFile> GetActivityFitFileAsync(string fitFileUrl)
+    public async Task<FitFile> GetActivityFitFileAsync(string fitFileUrl, CancellationToken cancellation = default)
     {
         try
         {
@@ -433,8 +434,8 @@ public class IGPSportClient(
             fitFileUrl = fitFileUrl.Trim();
             if (host.StartsWith(fitFileUrl)) throw new ArgumentException("无效 Fit 文件地址");
 
-            using var stream = await client.GetStreamAsync(fitFileUrl);
-            return await services.GetFitService().DeserializeAsync(stream);
+            using var stream = await client.GetStreamAsync(fitFileUrl, cancellation);
+            return await services.GetFitService().DeserializeAsync(stream, cancellation);
         }
         catch(Exception ex)
         {

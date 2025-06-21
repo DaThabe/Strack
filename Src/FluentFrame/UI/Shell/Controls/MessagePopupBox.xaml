@@ -1,0 +1,49 @@
+﻿<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:FluentFrame.UI.Shell.Controls"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+
+    <ControlTemplate x:Key="MessageBoxTemplate" TargetType="{x:Type local:MessagePopupBox}">
+        <Grid DockPanel.Dock="Right">
+
+            <!--  消息数量  -->
+            <Border
+                Width="Auto"
+                Height="12"
+                MaxWidth="25"
+                Padding="2,0"
+                Background="{DynamicResource BadgeBackground}"
+                CornerRadius="2">
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    FontSize="8"
+                    FontWeight="Medium"
+                    Foreground="#fff"
+                    Opacity="0.8"
+                    Text="{Binding}"
+                    TextTrimming="CharacterEllipsis"
+                    TextWrapping="NoWrap" />
+            </Border>
+
+            <!--  按钮  -->
+            <ui:ToggleSwitch x:Name="PART_Toogle">
+                <ui:ToggleSwitch.Triggers />
+            </ui:ToggleSwitch>
+
+            <!--  消息列表弹窗  -->
+            <Popup
+                x:Name="PART_Popup"
+                PlacementTarget="{Binding ElementName=PART_Toogle}"
+                Style="{StaticResource MessagePopupStyle}">
+
+                <ui:Card Background="{DynamicResource ApplicationBackgroundBrush}">
+                    <ItemsControl x:Name="PART_ItemsHost" Style="{StaticResource MessageItemsControlStyle}" />
+                </ui:Card>
+            </Popup>
+
+        </Grid>
+    </ControlTemplate>
+
+</ResourceDictionary>

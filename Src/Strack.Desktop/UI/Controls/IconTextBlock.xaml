@@ -1,0 +1,27 @@
+﻿<UserControl
+    x:Class="Strack.Desktop.UI.Controls.IconTextBlock"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:Strack.Desktop.UI.Controls"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    x:Name="Root"
+    mc:Ignorable="d">
+
+    <DockPanel>
+
+        <ContentControl
+            Margin="0,0,2,0"
+            VerticalAlignment="Center"
+            d:Content="{d:SampleData ItemCount=1}"
+            Content="{Binding Icon, ElementName=Root}"
+            DockPanel.Dock="Left" />
+
+        <ui:TextBlock
+            d:Text="Text"
+            FontTypography="Caption"
+            Text="{Binding Text, ElementName=Root}" />
+
+    </DockPanel>
+</UserControl>

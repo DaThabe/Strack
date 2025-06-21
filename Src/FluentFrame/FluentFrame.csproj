@@ -6,7 +6,7 @@
 	  <LangVersion>Preview</LangVersion>
     <UseWPF>true</UseWPF>
     <ImplicitUsings>enable</ImplicitUsings>
-    <OutputType>WinExe</OutputType>
+    <OutputType>Library</OutputType>
   </PropertyGroup>
 
 
@@ -23,7 +23,7 @@
 
 
 	<ItemGroup>
-	  <Folder Include="Model\" />
+	  <ProjectReference Include="..\Common\Common.csproj" />
 	</ItemGroup>
 
 </Project>

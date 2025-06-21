@@ -1,4 +1,4 @@
-﻿using Common.Model;
+﻿using Common.Infrastructure;
 using UnitsNet;
 
 namespace XingZhe.Model.User.Workout.Summary;

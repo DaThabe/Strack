@@ -12,7 +12,7 @@ public partial class NotifyItemViewModel : ObservableObject
     /// 图标
     /// </summary>
     [ObservableProperty]
-    public partial object? Icon { get; set; }
+    public partial IconElement? Icon { get; set; }
 
     /// <summary>
     /// 样式

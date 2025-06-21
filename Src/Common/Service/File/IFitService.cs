@@ -12,19 +12,19 @@ public interface IFitService
     /// 从 fit 流反序列化
     /// </summary>
     /// <param name="fitSource"></param>
-    Task<FitFile> DeserializeAsync(Stream fitSource);
+    Task<FitFile> DeserializeAsync(Stream fitSource, CancellationToken cancellation = default);
 }
 
 public class FitService(ILogger<FitService> logger) : IFitService
 {
-    public async Task<FitFile> DeserializeAsync(Stream fitSource)
+    public async Task<FitFile> DeserializeAsync(Stream fitSource, CancellationToken cancellation = default)
     {
         try
         {
             logger.LogTrace("正在读取Fit文件");
 
             await using var memory = new MemoryStream();
-            await fitSource.CopyToAsync(memory);
+            await fitSource.CopyToAsync(memory, cancellation);
             memory.Seek(0, SeekOrigin.Begin);
 
             Decode decode = new();

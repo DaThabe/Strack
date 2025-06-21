@@ -19,7 +19,14 @@ public class UserEntity : EntityBase
     /// 外部Id
     /// </summary>
     public required long ExternalId { get; set; }
-
+    /// <summary>
+    /// 名称
+    /// </summary>
+    public string? Name { get; set; }
+    /// <summary>
+    /// 头像网址
+    /// </summary>
+    public string? AvatarUrl { get; set; }
 
     /// <summary>
     /// 凭证

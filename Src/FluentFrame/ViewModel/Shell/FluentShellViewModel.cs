@@ -1,11 +1,15 @@
 ﻿using CommunityToolkit.Mvvm.Input;
-using FluentFrame.Service;
+using FluentFrame.Service.Shell.Dialog;
+using FluentFrame.Service.Shell.Menu;
+using FluentFrame.Service.Shell.Message;
+using FluentFrame.Service.Shell.Navigation;
+using FluentFrame.Service.Shell.Notify;
+using FluentFrame.ViewModel.Shell.Dialog;
 using FluentFrame.ViewModel.Shell.Message;
 using FluentFrame.ViewModel.Shell.Navigation;
 using FluentFrame.ViewModel.Shell.Notify;
+using Microsoft.Extensions.DependencyInjection;
 using System.Collections.ObjectModel;
-using System.Threading.Tasks;
-using System.Windows;
 using Wpf.Ui;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
@@ -13,122 +17,163 @@ using Wpf.Ui.Controls;
 namespace FluentFrame.ViewModel.Shell;
 
 
-public partial class FluentShellViewModel(IServiceProvider services, Service.Navigation.INavigationService navigationService) : ObservableObject, INavigationSourceProvider
+public partial class FluentShellViewModel : ObservableObject, 
+    INavigationSourceProvider,
+    IMenuSourceProvider, 
+    INotifySourceProvider, 
+    IDialogSourceProvider, 
+    IMessageSourceProvider
 {
+    #region --内容属性--
+
     /// <summary>
     /// 图标
     /// </summary>
     [ObservableProperty]
     public partial IconElement? Icon { get; set; }
-
-    /// <summary>
-    /// 是否是夜间主题
-    /// </summary>
-    [ObservableProperty]
-    public partial bool IsDarkTheme { get; set; }    
-
     /// <summary>
     /// 标题
     /// </summary>
     [ObservableProperty]
     public partial string Title { get; set; } = "FluentShell";
+    /// <summary>
+    /// 是否是夜间主题
+    /// </summary>
+    [ObservableProperty]
+    public partial bool IsDarkTheme { get; set; }
 
     /// <summary>
     /// 内容
     /// </summary>
     [ObservableProperty]
     public partial object? Content { get; set; }
-
-
     /// <summary>
-    /// 导航菜单
+    /// 弹窗内容
     /// </summary>
     [ObservableProperty]
-    public partial ObservableCollection<MenuItemViewModel> NavigationMenus { get; set; } = [];
+    [NotifyPropertyChangedFor(nameof(ContentOpacity))]
+    public partial DialogViewModel? Dialog { get; set; }
 
-    /// <summary>
-    /// 页脚导航菜单
-    /// </summary>
-    [ObservableProperty]
-    public partial ObservableCollection<MenuItemViewModel> NavigationFooterMenus { get; set; } = [];
-
-
+    
     /// <summary>
     /// 导航记录
     /// </summary>
     [ObservableProperty]
-    public partial ObservableCollection<RecordItemViewModel> NavigationRecords { get; set; } = [];
+    public partial ObservableCollection<RecordItemViewModel> NavigationRecords { get; set; }
+    /// <summary>
+    /// 导航菜单
+    /// </summary>
+    [ObservableProperty]
+    public partial ObservableCollection<MenuItemViewModel> NavigationMenus { get; set; }
+    /// <summary>
+    /// 页脚导航菜单
+    /// </summary>
+    [ObservableProperty]
+    public partial ObservableCollection<MenuItemViewModel> NavigationFooterMenus { get; set; }
 
 
     /// <summary>
     /// 消息
     /// </summary>
     [ObservableProperty]
-    public partial ObservableCollection<MessageItemViewModel> Messages { get; set; } = [];
-
-
+    public partial ObservableCollection<MessageItemViewModel> Messages { get; set; }
     /// <summary>
     /// 通知
     /// </summary>
     [ObservableProperty]
-    public partial ObservableCollection<NotifyItemViewModel> Notifies { get; set; } = [];
-    
-    object? INavigationSourceProvider.Content
-    {
-        get => Content; 
-        set => Content = value;
-    }
+    public partial ObservableCollection<NotifyItemViewModel> Notifies { get; set; }
 
-    MenuItemViewModel? INavigationSourceProvider.GetTargetPageMenuItemViewModel(Type targetPage)
-    {
-        var result = NavigationMenus.FirstOrDefault(x => x.TargetPageType == targetPage);
-        if(result !=  null) return result;
+    #endregion
 
-        return NavigationFooterMenus.FirstOrDefault(x => x.TargetPageType == targetPage);
-    }
-
+    #region --行为--
 
     /// <summary>
-    /// 点击导航记录
+    /// 内容透明度
     /// </summary>
-    [RelayCommand]
-    private async Task OnNavigationRecordItemClickedAsync(RecordItemViewModel menu)
+    public double ContentOpacity => Dialog == null ? 1 : 0.3;
+
+    /// <summary>
+    /// 消息数量是否可见
+    /// </summary>
+    public bool MessageCountVisible => Messages.Count > 0;
+
+    /// <summary>
+    /// 消息弹窗是否打开
+    /// </summary>
+    [ObservableProperty]
+    public partial bool MessagePopupOpened { get; set; } = false;
+
+
+    /// <summary>
+    /// 导航返回是否启用
+    /// </summary>
+    public bool NavigationBackEnable => _pageNavigationService.CanBack;
+
+    /// <summary>
+    /// 导航前进是否启用
+    /// </summary>
+    public bool NavigationForwardEnable => _pageNavigationService.CanForward;
+
+
+    /// <summary>
+    /// 夜间模式属性监听
+    /// </summary>
+    partial void OnIsDarkThemeChanged(bool value)
     {
-        await navigationService.NavigationToAsync(menu.TargetPageType);
+        _themeService.SetTheme(value ? ApplicationTheme.Dark : ApplicationTheme.Light);
     }
 
     /// <summary>
-    /// 菜单已被点击
+    /// 消息属性见监听
+    /// </summary>
+    /// <param name="value"></param>
+    partial void OnMessagesChanged(ObservableCollection<MessageItemViewModel> value)
+    {
+        value.CollectionChanged += (sender, e) => 
+        OnPropertyChanged(nameof(MessageCountVisible));
+    }
+
+    #endregion
+
+    #region --命令--
+
+    /// <summary>
+    /// 导航到目标页面
     /// </summary>
     /// <param name="menu"></param>
     [RelayCommand]
-    private async Task OnNavigationMenuItemClicked(MenuItemViewModel menu)
+    private async Task NavigationToAsync(Type targetPageType)
     {
-        if (menu == _lastSelectedMenuItem) return;
+        OnPropertyChanged(nameof(NavigationBackEnable));
+        OnPropertyChanged(nameof(NavigationForwardEnable));
 
-        if (await navigationService.NavigationToAsync(menu.TargetPageType))
-        {
-            NavigationRecords = [new() { Content = menu.Content, TargetPageType = menu.TargetPageType }];
-
-            _lastSelectedMenuItem?.IsActive = false;
-            _lastSelectedMenuItem = menu;
-            _lastSelectedMenuItem?.IsActive = true;
-        }
-        else
-        {
-            if (menu.IsActive != false) menu.IsActive = false;
-            if(_lastSelectedMenuItem?.IsActive != true) _lastSelectedMenuItem?.IsActive = true;
-        }
+        await _pageNavigationService.NavigationToAwareAsync(targetPageType);
     }
 
     /// <summary>
-    /// 返回按钮被点击
+    /// 返回上一个导航
     /// </summary>
     [RelayCommand]
-    private async Task OnBackButtonClicked()
+    private async Task NavigationBackAsync()
     {
-        await navigationService.BackAsync();
+        OnPropertyChanged(nameof(NavigationBackEnable));
+        OnPropertyChanged(nameof(NavigationForwardEnable));
+
+        await _pageNavigationService.BackAwareAsync();
     }
+
+    /// <summary>
+    /// 返回前一个导航
+    /// </summary>
+    [RelayCommand]
+    private async Task NavigationForwardAsync()
+    {
+        OnPropertyChanged(nameof(NavigationBackEnable));
+        OnPropertyChanged(nameof(NavigationForwardEnable));
+
+        await _pageNavigationService.ForwardAwareAsync();
+    }
+
 
 
     /// <summary>
@@ -136,23 +181,94 @@ public partial class FluentShellViewModel(IServiceProvider services, Service.Nav
     /// </summary>
     /// <param name="item"></param>
     [RelayCommand]
-    private async Task OnCloseNotifyItemClicked(NotifyItemViewModel item)
+    private Task CloseNotifyAsync(NotifyItemViewModel item)
     {
-        item.IsActive = false;
-
-        await Task.Delay(1000);
-        Notifies.Remove(item);
+        return _notifyService.CloseAsync(item);
     }
-
 
     /// <summary>
-    /// 是否开启夜间模式属性变化
+    /// 移除消息
     /// </summary>
-    partial void OnIsDarkThemeChanged(bool value)
+    /// <param name="item"></param>
+    [RelayCommand]
+    private void RemoveMessageAsync(MessageItemViewModel item)
     {
-        ApplicationThemeManager.Apply(value ? ApplicationTheme.Dark : ApplicationTheme.Light);
+        _messageService.Remove(item);
+    }
+
+    /// <summary>
+    /// 切换主题
+    /// </summary>
+    [RelayCommand]
+    private void ChangeTheme() => IsDarkTheme = !IsDarkTheme;
+
+
+    #endregion
+
+
+
+    public FluentShellViewModel(
+        IDialogService dialogService,
+        INotifyService notifyService,
+        IMessageService messageService,
+        IPageNavigationService pageNavigationService,
+        IMenuService menuService,
+        IThemeService themeService
+    )
+    {
+        _themeService = themeService;
+
+        _notifyService = notifyService;
+        _notifyService.SetSourceProvider(this);
+
+        _messageService = messageService;
+        _messageService.SetSourceProvider(this);
+
+        _pageNavigationService = pageNavigationService;
+        _pageNavigationService.SetSourceProvider(this);
+
+        _menuService = menuService;
+        _menuService.SetSourceProvider(this);
+
+        _dialogService = dialogService;
+        _dialogService.SetSourceProvider(this);
+
+
+        NavigationRecords = [];
+        NavigationMenus = [];
+        NavigationFooterMenus = [];
+
+        Messages = [];
+        Notifies = [];
     }
 
 
-    private MenuItemViewModel? _lastSelectedMenuItem;
+    private readonly INotifyService _notifyService;
+    private readonly IMessageService _messageService;
+    private readonly IPageNavigationService _pageNavigationService;
+    private readonly IMenuService _menuService;
+    private readonly IThemeService _themeService;
+    private readonly IDialogService _dialogService;
+
+    ObservableCollection<MessageItemViewModel> IMessageSourceProvider.ItemsSource
+    {
+        get => Messages;
+    }
+    DialogViewModel? IDialogSourceProvider.Content
+    {
+        get => Dialog;
+        set => Dialog = value;
+    }
+    ObservableCollection<MenuItemViewModel> IMenuSourceProvider.ItemsSource
+    {
+        get => NavigationMenus;
+    }
+    ObservableCollection<MenuItemViewModel> IMenuSourceProvider.FooterItemsSource
+    {
+        get => NavigationFooterMenus;
+    }
+    ObservableCollection<NotifyItemViewModel> INotifySourceProvider.ItemsSource
+    {
+        get => Notifies;
+    }
 }

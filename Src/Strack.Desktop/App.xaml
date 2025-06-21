@@ -24,6 +24,40 @@
                 Stretch="UniformToFill"
                 Stroke="{x:Null}" />
 
+            <!--  自动滚动条竖向ItemsControl样式  -->
+            <Style x:Key="AutoScrollVerticalItemsControlStyle" TargetType="ItemsControl">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate>
+
+                            <ScrollViewer
+                                FocusVisualStyle="{x:Null}"
+                                Focusable="False"
+                                HorizontalScrollBarVisibility="Disabled"
+                                VerticalScrollBarVisibility="Auto">
+                                <ItemsPresenter />
+                            </ScrollViewer>
+
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+                <Setter Property="ItemsPanel">
+                    <Setter.Value>
+                        <ItemsPanelTemplate>
+
+                            <VirtualizingStackPanel
+                                FocusVisualStyle="{x:Null}"
+                                Focusable="False"
+                                Orientation="Vertical" />
+
+                        </ItemsPanelTemplate>
+                    </Setter.Value>
+                </Setter>
+
+                <Setter Property="Focusable" Value="False" />
+                <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            </Style>
+
         </ResourceDictionary>
     </Application.Resources>
 

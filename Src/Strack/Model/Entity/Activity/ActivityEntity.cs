@@ -22,7 +22,7 @@ public class ActivityEntity : EntityBase
     /// <summary>
     /// 运动类型
     /// </summary>
-    public ActivityType Sport { get; set; } = ActivityType.Other;
+    public ActivityType Type { get; set; } = ActivityType.Other;
 
     /// <summary>
     /// 开始时间 (Unix秒)

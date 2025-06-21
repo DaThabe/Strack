@@ -6,7 +6,6 @@ using Strack.Model.Entity.Activity.Source;
 using Strack.Model.Entity.User;
 using Strack.Model.Entity.User.Credential;
 
-
 namespace Strack.Data;
 
 public class StrackDbContext(DbContextOptions<StrackDbContext> options) : DbContext(options)
@@ -33,7 +32,6 @@ public class StrackDbContext(DbContextOptions<StrackDbContext> options) : DbCont
     /// </summary>
     public DbSet<UserCredentialEntity> UserCredentials { get; set; }
 
-    
     protected override void OnModelCreating(ModelBuilder builder)
     {
         builder.ApplyConfigurationsFromAssembly(typeof(StrackDbContext).Assembly);

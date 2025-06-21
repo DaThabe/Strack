@@ -32,11 +32,11 @@ namespace Strack.Migrations
                     b.Property<long?>("FinishUnixTimeSeconds")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Sport")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("Title")
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("INTEGER");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("TEXT");
@@ -147,8 +147,14 @@ namespace Strack.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("AvatarUrl")
+                        .HasColumnType("TEXT");
+
                     b.Property<long>("ExternalId")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("Platform")
                         .HasColumnType("INTEGER");

@@ -1,0 +1,228 @@
+﻿<UserControl
+    x:Class="Strack.Desktop.UI.View.Activity.ActivityPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:activity="clr-namespace:Strack.Desktop.ViewModel.View.Activity"
+    xmlns:cb="clr-namespace:CalcBinding;assembly=CalcBinding"
+    xmlns:control="clr-namespace:Strack.Desktop.UI.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:Strack.Desktop.UI.View.Activity"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:summary="clr-namespace:Strack.Desktop.ViewModel.View.Activity.Summary"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:user="clr-namespace:Strack.Desktop.ViewModel.View.Activity.User"
+    d:DataContext="{d:DesignInstance Type=activity:ActivityPageViewModel}"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    mc:Ignorable="d">
+
+    <UserControl.Resources>
+
+        <!--  用户元素模板  -->
+        <DataTemplate x:Key="ActivityUserDataTempalte" DataType="{x:Type user:UserViewModel}">
+            <ui:Card Padding="5">
+
+                <DockPanel>
+
+                    <!--  同步  -->
+                    <ui:Button
+                        x:Name="SyncButton"
+                        Command="{Binding SyncActivityCommand}"
+                        DockPanel.Dock="Right"
+                        Icon="{ui:SymbolIcon Symbol=ArrowSync24}"
+                        ToolTip="从第三方平台同步"
+                        Visibility="{cb:Binding IsEnabled,
+                                                ElementName=SyncButton}" />
+
+                    <!--  取消同步  -->
+                    <ui:Button
+                        Appearance="Danger"
+                        Command="{Binding CancelSyncActivityCommand}"
+                        DockPanel.Dock="Right"
+                        Icon="{ui:SymbolIcon Symbol=ArrowSyncOff16}"
+                        ToolTip="从第三方平台取消同步"
+                        Visibility="{cb:Binding '!IsEnabled',
+                                                ElementName=SyncButton}" />
+
+                    <DockPanel>
+
+                        <ui:Image
+                            Width="25"
+                            Height="25"
+                            Margin="5"
+                            CornerRadius="5"
+                            DockPanel.Dock="Left"
+                            Source="{Binding Avatar}" />
+
+                        <!--  数据  -->
+                        <StackPanel VerticalAlignment="Center">
+                            <ui:TextBlock Text="{Binding Name}" />
+                            <ui:TextBlock
+                                Appearance="Disabled"
+                                FontTypography="Caption"
+                                Text="{Binding PlatformType}" />
+                        </StackPanel>
+                    </DockPanel>
+
+
+
+                </DockPanel>
+
+            </ui:Card>
+        </DataTemplate>
+
+        <!--  活动元素模板  -->
+        <DataTemplate x:Key="ActivitySummaryDataTemplate" DataType="{x:Type summary:ActivitySummaryViewModel}">
+            <ui:Card Margin="0,3" Padding="5,0,10,0">
+                <DockPanel>
+
+                    <!--  轨迹点  -->
+                    <Viewbox
+                        Width="50"
+                        Height="50"
+                        Margin="5"
+                        DockPanel.Dock="Left">
+                        <control:TrackControl LineThickness="30" Points="{Binding TrackPoints}" />
+                    </Viewbox>
+
+                    <!--  信息  -->
+                    <ScrollViewer
+                        Padding="5"
+                        VerticalAlignment="Center"
+                        FocusVisualStyle="{x:Null}"
+                        Focusable="False"
+                        HorizontalScrollBarVisibility="Auto"
+                        VerticalScrollBarVisibility="Disabled">
+
+                        <!--  内容  -->
+                        <StackPanel Margin="0,0,20,0" Orientation="Vertical">
+
+                            <!--  标题  -->
+                            <ui:TextBlock
+                                VerticalAlignment="Center"
+                                DockPanel.Dock="Left"
+                                FontTypography="BodyStrong"
+                                Text="{Binding Title}" />
+
+
+                            <StackPanel
+                                VerticalAlignment="Center"
+                                Opacity="0.8"
+                                Orientation="Horizontal">
+
+                                <!--  日期  -->
+                                <control:IconTextBlock Icon="{ui:SymbolIcon Symbol=CalendarLtr24}" Text="{Binding TimeFormatted, Mode=OneWay}" />
+
+                                <!--  距离  -->
+                                <control:IconTextBlock
+                                    Margin="10,0,0,0"
+                                    Icon="{ui:SymbolIcon Symbol=DataLine20}"
+                                    Text="{Binding DistanceFormatted, Mode=OneWay}" />
+
+                                <!--  用时  -->
+                                <control:IconTextBlock
+                                    Margin="10,0,0,0"
+                                    Icon="{ui:SymbolIcon Symbol=Clock24}"
+                                    Text="{Binding DurationFormatted, Mode=OneWay}" />
+
+                            </StackPanel>
+
+                        </StackPanel>
+
+                    </ScrollViewer>
+
+                </DockPanel>
+            </ui:Card>
+        </DataTemplate>
+
+    </UserControl.Resources>
+
+    <DockPanel>
+
+        <!--  用户列表  -->
+        <DockPanel Margin="0,0,5,0" DockPanel.Dock="Left">
+
+            <ui:CardControl
+                Margin="0,0,0,5"
+                DockPanel.Dock="Top"
+                Header="添加账户">
+
+                <StackPanel Orientation="Horizontal">
+
+                    <Button
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Command="{Binding AddUserCommand}"
+                        ToolTip="添加">
+                        <ui:SymbolIcon Symbol="Add24" />
+                    </Button>
+
+                    <Button
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Command="{Binding ReloadUserCommand}"
+                        ToolTip="刷新">
+                        <ui:SymbolIcon Symbol="ArrowCounterclockwise24" />
+                    </Button>
+
+                </StackPanel>
+            </ui:CardControl>
+
+            <ui:ListView
+                d:ItemsSource="{d:SampleData ItemCount=3}"
+                ItemTemplate="{StaticResource ActivityUserDataTempalte}"
+                ItemsSource="{Binding Users}"
+                SelectedItem="{Binding SelectedUser}">
+
+                <ui:ListView.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <VirtualizingStackPanel Orientation="Vertical" />
+                    </ItemsPanelTemplate>
+                </ui:ListView.ItemsPanel>
+
+                <ui:ListView.Template>
+                    <ControlTemplate>
+                        <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                            <ItemsPresenter />
+                        </ScrollViewer>
+                    </ControlTemplate>
+                </ui:ListView.Template>
+
+            </ui:ListView>
+
+        </DockPanel>
+
+        <!--  分页栏  -->
+        <control:Pagination
+            Margin="0,5,0,0"
+            HorizontalAlignment="Center"
+            Current="{Binding SelectedUser.ActivityPagination.Current}"
+            DockPanel.Dock="Bottom"
+            First="{Binding SelectedUser.ActivityPagination.Min}"
+            Last="{Binding SelectedUser.ActivityPagination.Max}" />
+
+        <!--  活动列表  -->
+        <ItemsControl
+            d:ItemsSource="{d:SampleData ItemCount=3}"
+            ItemTemplate="{StaticResource ActivitySummaryDataTemplate}"
+            ItemsSource="{Binding SelectedUser.Activities}">
+
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <VirtualizingStackPanel Orientation="Vertical" />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+
+            <ItemsControl.Template>
+                <ControlTemplate>
+                    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                        <ItemsPresenter />
+                    </ScrollViewer>
+                </ControlTemplate>
+            </ItemsControl.Template>
+
+        </ItemsControl>
+
+    </DockPanel>
+
+</UserControl>
